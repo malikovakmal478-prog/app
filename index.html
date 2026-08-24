@@ -6,22 +6,32 @@
     <style>
         body { font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; margin: 0; background: #1c1c1c; color: white; }
         #main { display: flex; flex: 1; }
-        #editor { width: 50%; height: 100%; }
+        #code-input { width: 50%; height: 90vh; background: #252526; color: #d4d4d4; font-family: monospace; font-size: 14px; border: none; padding: 15px; resize: none; outline: none; }
         #output-container { width: 50%; padding: 15px; background: #121212; border-left: 1px solid #333; }
-        button { padding: 10px 20px; font-size: 16px; background: #22c55e; border: none; color: white; cursor: pointer; font-weight: bold; }
+        button { padding: 10px 20px; font-size: 16px; background: #22c55e; border: none; color: white; cursor: pointer; font-weight: bold; margin: 10px; border-radius: 5px; }
         button:hover { background: #16a34a; }
         pre { color: #00ff00; font-family: monospace; white-space: pre-wrap; }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
 </head>
 <body>
 
-    <div style="padding: 10px; background: #2d2d2d;">
+    <div style="background: #2d2d2d;">
         <button onclick="runCode()">► Botni 24/7 ishga tushirish (Run)</button>
     </div>
 
     <div id="main">
-        <div id="editor"></div>
+        <textarea id="code-input" placeholder="Botingiz kodini shu yerga joylang...">import telebot
+
+BOT_TOKEN = 'TOKEN_YAZING'
+bot = telebot.TeleBot(BOT_TOKEN)
+
+@bot.message_handler(commands=['start'])
+def start(message):
+    bot.reply_to(message, 'Salom! Men 24/7 ishlayotgan botman!')
+
+print('Bot ishga tushdi...')
+bot.infinity_polling()</textarea>
+
         <div id="output-container">
             <h3>Natija (Console Output):</h3>
             <pre id="output">Kod joylang va Run tugmasini bosing...</pre>
@@ -29,18 +39,8 @@
     </div>
 
     <script>
-        let editor;
-        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' }});
-        require(['vs/editor/editor'], function() {
-            editor = monaco.editor.create(document.getElementById('editor'), {
-                value: "import telebot\n\nBOT_TOKEN = 'TOKEN_YAZING'\nbot = telebot.TeleBot(BOT_TOKEN)\n\n@bot.message_handler(commands=['start'])\ndef start(message):\n    bot.reply_to(message, 'Salom! Men 24/7 ishlayotgan botman!')\n\nprint('Bot ishga tushdi...')\nbot.infinity_polling()",
-                language: 'python',
-                theme: 'vs-dark'
-            });
-        });
-
         async function runCode() {
-            const userCode = editor.getValue();
+            const userCode = document.getElementById('code-input').value;
             const outputElement = document.getElementById('output');
             outputElement.innerText = "Bot serverga yuborilmoqda va 24/7 ishga tushirilmoqda...";
 
