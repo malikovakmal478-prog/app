@@ -1,66 +1,66 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <title>Mening Mini Replit Tizimim</title>
-  <style>
-    body { font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; margin: 0; background: #1e1e1e; color: white; }
-    #main { display: flex; flex: 1; }
-    #editor { width: 50%; height: 100%; }
-    #output-container { width: 50%; padding: 15px; background: #121212; border-left: 1px solid #333; }
-    button { padding: 10px 20px; font-size: 16px; background: #22c55e; border: none; color: white; cursor: pointer; font-weight: bold; }
-    button:hover { background: #16a34a; }
-    pre { color: #00ff00; font-family: monospace; white-space: pre-wrap; }
-  </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
+    <meta charset="UTF-8">
+    <title>Mening Mini Replit Tizimim</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; margin: 0; background: #1c1c1c; color: white; }
+        #main { display: flex; flex: 1; }
+        #editor { width: 50%; height: 100%; }
+        #output-container { width: 50%; padding: 15px; background: #121212; border-left: 1px solid #333; }
+        button { padding: 10px 20px; font-size: 16px; background: #22c55e; border: none; color: white; cursor: pointer; font-weight: bold; }
+        button:hover { background: #16a34a; }
+        pre { color: #00ff00; font-family: monospace; white-space: pre-wrap; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
 </head>
 <body>
 
-  <div style="padding: 10px; background: #2d2d2d;">
-    <button onclick="runCode()">▶ Ishga tushirish (Run)</button>
-  </div>
-
-  <div id="main">
-    <div id="editor"></div>
-    <div id="output-container">
-      <h3>Natija (Console Output):</h3>
-      <pre id="output">Kodni yozing va Run tugmasini bosing...</pre>
+    <div style="padding: 10px; background: #2d2d2d;">
+        <button onclick="runCode()">► Botni 24/7 ishga tushirish (Run)</button>
     </div>
-  </div>
 
-  <script>
-    let editor;
-    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' }});
-    require(['vs/editor/editor.main'], function() {
-      editor = monaco.editor.create(document.getElementById('editor'), {
-        value: "print('Salom, Dunyo!')",
-        language: 'python',
-        theme: 'vs-dark'
-      });
-    });
+    <div id="main">
+        <div id="editor"></div>
+        <div id="output-container">
+            <h3>Natija (Console Output):</h3>
+            <pre id="output">Kod joylang va Run tugmasini bosing...</pre>
+        </div>
+    </div>
 
-    async function runCode() {
-      const userCode = editor.getValue();
-      const outputElement = document.getElementById('output');
-      outputElement.innerText = "Bajarilmoqda...";
-
-      try {
-        const response = await fetch('https://emkc.org/api/v2/piston/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            language: 'python',
-            version: '3.10.0',
-            files: [{ content: userCode }]
-          })
+    <script>
+        let editor;
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' }});
+        require(['vs/editor/editor'], function() {
+            editor = monaco.editor.create(document.getElementById('editor'), {
+                value: "import telebot\n\nBOT_TOKEN = 'TOKEN_YAZING'\nbot = telebot.TeleBot(BOT_TOKEN)\n\n@bot.message_handler(commands=['start'])\ndef start(message):\n    bot.reply_to(message, 'Salom! Men 24/7 ishlayotgan botman!')\n\nprint('Bot ishga tushdi...')\nbot.infinity_polling()",
+                language: 'python',
+                theme: 'vs-dark'
+            });
         });
 
-        const result = await response.json();
-        outputElement.innerText = result.run.output || "Natija yo'q";
-      } catch (error) {
-        outputElement.innerText = "Xatolik yuz berdi: " + error.message;
-      }
-    }
-  </script>
+        async function runCode() {
+            const userCode = editor.getValue();
+            const outputElement = document.getElementById('output');
+            outputElement.innerText = "Bot serverga yuborilmoqda va 24/7 ishga tushirilmoqda...";
+
+            try {
+                const response = await fetch('https://mini-replit.onrender.com/run-bot', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: userCode })
+                });
+
+                const result = await response.json();
+                if (result.status === 'success') {
+                    outputElement.innerText = "✅ " + result.message;
+                } else {
+                    outputElement.innerText = "❌ Xatolik: " + result.message;
+                }
+            } catch (error) {
+                outputElement.innerText = "Xatolik yuz berdi: " + error.message;
+            }
+        }
+    </script>
 </body>
 </html>
