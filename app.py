@@ -2,28 +2,17 @@ import os
 import json
 import sqlite3
 import subprocess
+import google.generativeai as genai
 from flask import Flask, render_template_string, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
 
-DB_PATH = "replit_projects.db"
-
-def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS projects (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE,
-            files_json TEXT
-        )
-    ''')
-    conn.commit()
-    conn.close()
-
-init_db()
+# Gemini API Key o'rnatiladi
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
 
 @app.route('/')
 def index():
@@ -35,87 +24,43 @@ def index():
 @app.route('/agent-build', methods=['POST'])
 def agent_build():
     data = request.get_json() or {}
-    project_name = data.get('name', 'my_app')
+    prompt = data.get('prompt', '')
+    project_name = data.get('name', 'grender_app')
 
-    # Replit Agent avtomatik yaratadigan to'liq Full-Stack Mini App strukturasi
-    default_files = [
-        {
-            "name": "index.html",
-            "content": """<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram Mini App</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body class="bg-black text-white pb-16">
-    <header class="flex justify-between items-center px-4 py-3 border-b border-gray-800 sticky top-0 bg-black z-50">
-        <h1 class="text-xl font-bold italic tracking-wide">Instagram</h1>
-        <div class="flex space-x-4">
-            <span>❤️</span>
-            <span>💬</span>
-        </div>
-    </header>
+    if not prompt:
+        return jsonify({"error": "Prompt kiritilmadi"}), 400
 
-    <div class="flex space-x-4 p-3 overflow-x-auto border-b border-gray-800">
-        <div class="flex flex-col items-center">
-            <div class="w-14 h-14 rounded-full border-2 border-pink-500 p-0.5">
-                <img src="https://picsum.photos/100/100?random=1" class="w-full h-full rounded-full">
-            </div>
-            <span class="text-xs mt-1">Siz</span>
-        </div>
-        <div class="flex flex-col items-center">
-            <div class="w-14 h-14 rounded-full border-2 border-pink-500 p-0.5">
-                <img src="https://picsum.photos/100/100?random=2" class="w-full h-full rounded-full">
-            </div>
-            <span class="text-xs mt-1">user_1</span>
-        </div>
-    </div>
+    system_prompt = f"""
+    Siz professional Full-Stack Telegram Mini App yaratuvchi AI Agentsiz.
+    Foydalanuvchi talabi: "{prompt}".
 
-    <main class="p-4">
-        <div class="border border-gray-800 rounded-lg overflow-hidden mb-4">
-            <div class="p-3 font-semibold text-sm">user_1</div>
-            <img src="https://picsum.photos/500/300?random=3" class="w-full">
-            <div class="p-3 text-sm">
-                <p><b>user_1</b> Replit IDE orqali ishga tushirildi! 🚀</p>
-            </div>
-        </div>
-    </main>
+    Ushbu talab bo'yicha index.html, style.css va script.js fayllarini to'liq yozib bering.
+    Faqatgina quyidagi JSON formatida javob qaytaring (hech qanday qo'shimcha matnsiz):
+    {{
+      "files": [
+        {{"name": "index.html", "content": "...to'liq HTML kodi..."}},
+        {{"name": "style.css", "content": "...to'liq CSS kodi..."}},
+        {{"name": "script.js", "content": "...to'liq JS kodi..."}}
+      ]
+    }}
+    """
 
-    <script src="script.js"></script>
-</body>
-</html>"""
-        },
-        {
-            "name": "style.css",
-            "content": """/* Replit Custom Styles */
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}"""
-        },
-        {
-            "name": "script.js",
-            "content": """// Telegram WebApp Init
-const tg = window.Telegram?.WebApp;
-if (tg) {
-    tg.ready();
-    tg.expand();
-}
-console.log("Replit Workspace App Loaded!");"""
-        }
-    ]
-
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("INSERT OR REPLACE INTO projects (name, files_json) VALUES (?, ?)", 
-                   (project_name, json.dumps(default_files)))
-    conn.commit()
-    conn.close()
-
-    return jsonify({"files": default_files})
+    try:
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        response = model.generate_content(
+            system_prompt,
+            generation_config={"temperature": 0.2}
+        )
+        
+        raw_text = response.text.strip()
+        if raw_text.startswith("```json"): raw_text = raw_text[7:]
+        if raw_text.startswith("```"): raw_text = raw_text[3:]
+        if raw_text.endswith("```"): raw_text = raw_text[:-3]
+        
+        result = json.loads(raw_text.strip())
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": f"AI Avto-generatsiya xatosi: {str(e)}"}), 500
 
 @app.route('/run-terminal', methods=['POST'])
 def run_terminal():
