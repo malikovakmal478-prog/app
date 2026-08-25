@@ -3,238 +3,236 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Replit – Build apps and sites with AI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Super Replit – AI Powered Cloud Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         :root {
-            --bg-cream: #FBF9F5;
-            --text-dark: #1C1917;
-            --text-muted: #78716C;
-            --border-orange: #FF6B4A;
-            --border-light: #E7E5E4;
-            --btn-orange: #FF5733;
-            --card-bg: #F5F3EF;
+            --bg: #0D0E11;
+            --panel: #15181E;
+            --border: #262B35;
+            --accent: #FF5733;
+            --text: #F3F4F6;
+            --text-dim: #9CA3AF;
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-cream); color: var(--text-dark); min-height: 100vh; display: flex; flex-direction: column; }
+        body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Navigation Bar */
-        header { display: flex; justify-content: space-between; align-items: center; padding: 18px 40px; background: transparent; }
-        .logo-container { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1.4rem; color: var(--text-dark); cursor: pointer; }
-        .logo-icon { width: 24px; height: 24px; background-color: var(--btn-orange); border-radius: 4px; display: inline-block; }
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: 700; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; color: var(--accent); }
+        .logo span { background: var(--accent); color: #fff; width: 24px; height: 24px; border-radius: 4px; display: flex; justify-content: center; align-items: center; font-size: 0.8rem; }
         
-        nav { display: flex; gap: 24px; align-items: center; }
-        nav a { text-decoration: none; color: var(--text-dark); font-size: 0.95rem; font-weight: 500; display: flex; align-items: center; gap: 4px; }
-        nav a:hover { color: var(--text-muted); }
+        .main-layout { display: flex; flex: 1; height: calc(100vh - 57px); }
 
-        .auth-buttons { display: flex; gap: 16px; align-items: center; }
-        .btn-log { text-decoration: none; color: var(--text-dark); font-weight: 500; font-size: 0.95rem; }
-        .btn-create { border: 1px solid var(--btn-orange); color: var(--btn-orange); padding: 8px 18px; border-radius: 20px; font-weight: 500; text-decoration: none; font-size: 0.95rem; transition: 0.2s; }
-        .btn-create:hover { background: rgba(255, 87, 51, 0.05); }
+        /* Left Sidebar: Controls & Files */
+        .sidebar { width: 320px; background: var(--panel); border-right: 1px solid var(--border); padding: 16px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+        .input-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 0.75rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; }
+        input, select, textarea { background: #090A0C; border: 1px solid var(--border); border-radius: 6px; padding: 10px; color: var(--text); font-size: 0.85rem; outline: none; }
+        input:focus, textarea:focus { border-color: var(--accent); }
+        textarea { resize: vertical; min-height: 80px; }
 
-        /* Hero Section */
-        .hero { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 20px; max-width: 900px; margin: 0 auto; width: 100%; }
-        .hero h1 { font-size: 4rem; font-weight: 700; letter-spacing: -1.5px; margin-bottom: 12px; }
-        .hero p { color: var(--text-muted); font-size: 1.15rem; margin-bottom: 36px; }
+        .btn-build { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-build:hover { opacity: 0.9; }
 
-        /* Main AI Prompt Box */
-        .prompt-card { background: #FFFFFF; border: 1.5px solid #FF8C73; border-radius: 16px; padding: 16px; width: 100%; max-width: 680px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); display: flex; flex-direction: column; gap: 12px; position: relative; }
-        .prompt-input-group { display: flex; flex-direction: column; gap: 8px; text-align: left; }
-        .token-input { border: 1px solid var(--border-light); border-radius: 8px; padding: 10px 14px; font-size: 0.85rem; outline: none; background: #FAF9F6; width: 100%; }
-        .token-input:focus { border-color: var(--btn-orange); }
+        .file-tree { margin-top: 10px; }
+        .file-item { padding: 8px 12px; border-radius: 4px; font-size: 0.85rem; font-family: 'Fira Code', monospace; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .file-item:hover, .file-item.active { background: #212631; color: var(--accent); }
 
-        .prompt-textarea { border: none; outline: none; width: 100%; resize: none; font-size: 1.05rem; color: var(--text-dark); background: transparent; min-height: 70px; }
-        .prompt-textarea::placeholder { color: #A8A29E; }
-
-        .prompt-bottom { display: flex; justify-content: space-between; align-items: center; }
-        .add-btn { background: transparent; border: none; font-size: 1.4rem; color: var(--text-muted); cursor: pointer; padding: 0 4px; }
+        /* Center IDE Editor */
+        .editor-container { flex: 1; display: flex; flex-direction: column; border-right: 1px solid var(--border); }
+        .tab-bar { background: #111318; border-bottom: 1px solid var(--border); display: flex; padding: 0 8px; }
+        .tab { padding: 10px 16px; font-size: 0.8rem; font-family: 'Fira Code', monospace; border-right: 1px solid var(--border); color: var(--text-dim); cursor: pointer; }
+        .tab.active { background: var(--panel); color: var(--text); border-top: 2px solid var(--accent); }
         
-        .submit-btn { background: var(--btn-orange); border: none; width: 36px; height: 36px; border-radius: 50%; color: white; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; }
-        .submit-btn:hover { opacity: 0.9; transform: scale(1.05); }
-        .submit-btn svg { width: 18px; height: 18px; fill: currentColor; }
+        .code-editor { flex: 1; background: #0D0E11; border: none; padding: 16px; color: #E5E7EB; font-family: 'Fira Code', monospace; font-size: 0.9rem; line-height: 1.5; resize: none; outline: none; }
 
-        /* Categories Slider */
-        .categories { display: flex; gap: 12px; margin-top: 32px; justify-content: center; align-items: center; flex-wrap: wrap; }
-        .cat-item { background: #FAF8F5; border: 1px solid var(--border-light); border-radius: 12px; padding: 14px 20px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s; width: 90px; }
-        .cat-item:hover { background: #F0EDE6; }
-        .cat-item svg { width: 20px; height: 20px; fill: var(--text-dark); }
-        .cat-item span { font-size: 0.75rem; font-weight: 500; color: var(--text-dark); }
-
-        /* Prompt Suggestions */
-        .suggestions-title { font-size: 0.85rem; color: var(--text-muted); margin-top: 28px; margin-bottom: 12px; }
-        .suggestions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-        .sugg-chip { background: var(--card-bg); border: 1px solid var(--border-light); border-radius: 8px; padding: 8px 14px; font-size: 0.85rem; color: var(--text-dark); cursor: pointer; transition: 0.2s; }
-        .sugg-chip:hover { background: #EBE8E0; }
-
-        /* Output Modal / Workspace Section */
-        .workspace { margin-top: 40px; width: 100%; max-width: 900px; display: none; text-align: left; background: #FFFFFF; border: 1px solid var(--border-light); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .ws-header { background: #F5F3EF; padding: 12px 20px; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; }
-        .ws-title { font-weight: 600; font-size: 0.9rem; }
-        .ws-body { display: flex; height: 400px; }
-        .code-area { flex: 1; padding: 16px; font-family: monospace; font-size: 0.85rem; background: #1C1917; color: #F5F5F4; border: none; outline: none; resize: none; }
-        .terminal-area { width: 320px; background: #0C0A09; color: #22C55E; padding: 16px; font-family: monospace; font-size: 0.8rem; overflow-y: auto; white-space: pre-wrap; border-left: 1px solid #27272A; }
+        /* Right Preview & Terminal */
+        .preview-container { width: 45%; display: flex; flex-direction: column; background: #fff; }
+        .preview-header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; color: var(--text); font-size: 0.8rem; }
+        iframe { flex: 1; border: none; background: #ffffff; }
+        .terminal { height: 180px; background: #050506; border-top: 1px solid var(--border); color: #10B981; padding: 12px; font-family: 'Fira Code', monospace; font-size: 0.8rem; overflow-y: auto; white-space: pre-wrap; }
     </style>
 </head>
 <body>
 
-    <!-- Header Navigation -->
     <header>
-        <div class="logo-container">
-            <span class="logo-icon"></span>
-            Replit
-        </div>
-        <nav>
-            <a href="#">Products ▾</a>
-            <a href="#">For Work ▾</a>
-            <a href="#">Resources ▾</a>
-            <a href="#">Security</a>
-            <a href="#">Pricing</a>
-            <a href="#">Enterprise</a>
-        </nav>
-        <div class="auth-buttons">
-            <a href="#" class="btn-log">Contact sales</a>
-            <a href="#" class="btn-log">Log in</a>
-            <a href="#" class="btn-create">Create account</a>
-        </div>
+        <div class="logo"><span>⚡</span> SUPER REPLIT AI IDE</div>
+        <button class="btn-build" style="padding: 6px 14px; font-size: 0.8rem;" onclick="exportZip()">📦 Export ZIP</button>
     </header>
 
-    <!-- Hero Content -->
-    <div class="hero">
-        <h1>What will you build?</h1>
-        <p>Turn ideas into apps in minutes — no coding needed</p>
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="input-group">
+                <label>Loyiha Turi</label>
+                <select id="project-type">
+                    <option value="web">🌐 Full-Stack Web App (HTML/CSS/JS)</option>
+                    <option value="bot">🤖 Telegram Bot (Python 24/7)</option>
+                    <option value="python">🐍 Python Script / Data App</option>
+                </select>
+            </div>
 
-        <!-- Prompt Card -->
-        <div class="prompt-card">
-            <input type="text" id="bot-token" class="token-input" placeholder="Telegram Bot Token (masalan: 123456:ABC...)" />
-            <textarea id="bot-prompt" class="prompt-textarea" placeholder="Create a Telegram bot that..."></textarea>
-            
-            <div class="prompt-bottom">
-                <button class="add-btn">+</button>
-                <button class="submit-btn" onclick="generateAndRun()">
-                    <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
+            <div class="input-group">
+                <label>Telegram Bot Token (agar bot bo'lsa)</label>
+                <input type="text" id="bot-token" placeholder="123456:ABC..." />
+            </div>
+
+            <div class="input-group">
+                <label>AI Prompter / Topshiriq</label>
+                <textarea id="prompt" placeholder="Masalan: Interaktiv Portfolio sayti yarat yoki Ob-havo ko'rsatuvchi bot tuz..."></textarea>
+            </div>
+
+            <button class="btn-build" id="build-btn" onclick="generateProject()">⚡ Loyihani Generatsiya Qilish</button>
+
+            <div class="input-group">
+                <label>Loyiha Fayllari</label>
+                <div class="file-tree" id="file-tree">
+                    <div style="font-size: 0.8rem; color: var(--text-dim);">Fayllar hali yaratilmadi.</div>
+                </div>
             </div>
         </div>
 
-        <!-- Categories -->
-        <div class="categories">
-            <div class="cat-item">
-                <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2"/></svg>
-                <span>Website</span>
+        <!-- Editor -->
+        <div class="editor-container">
+            <div class="tab-bar" id="tab-bar">
+                <div class="tab active">main.file</div>
             </div>
-            <div class="cat-item">
-                <svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2" stroke="currentColor" stroke-width="2" fill="none"/></svg>
-                <span>Mobile</span>
-            </div>
-            <div class="cat-item">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/></svg>
-                <span>Design</span>
-            </div>
-            <div class="cat-item">
-                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" fill="none"/></svg>
-                <span>Slides</span>
-            </div>
-            <div class="cat-item">
-                <svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20" stroke="currentColor" stroke-width="2"/></svg>
-                <span>Animation</span>
-            </div>
+            <textarea class="code-editor" id="code-editor" spellcheck="false" placeholder="// Kodi shu yerda ko'rinadi..."></textarea>
         </div>
 
-        <!-- Suggestions -->
-        <div class="suggestions-title">Try an example prompt 🔄</div>
-        <div class="suggestions">
-            <div class="sugg-chip" onclick="setPrompt('Open budget statistika va ariza beruvchi Telegram bot yaratib ber')">Cohort analysis dashboard</div>
-            <div class="sugg-chip" onclick="setPrompt('Savdo va sotuvlarni hisoblab boruvchi biznes bot yaratib ber')">Retail sales dashboard</div>
-            <div class="sugg-chip" onclick="setPrompt('Kunlik vazifalar va salomatlik kunligini yurituvchi bot yarat')">Wellness journal</div>
-        </div>
-
-        <!-- Hidden Workspace (Appears after generate) -->
-        <div id="workspace" class="workspace">
-            <div class="ws-header">
-                <span class="ws-title">⚡️ Replit Agent — Code Output</span>
-                <span id="status-badge" style="color: #22C55E; font-size: 0.8rem; font-weight: 600;">READY</span>
+        <!-- Preview / Terminal -->
+        <div class="preview-container">
+            <div class="preview-header">
+                <span>🖥 Live Preview / App Display</span>
+                <span id="status" style="color: #10B981;">Ready</span>
             </div>
-            <div class="ws-body">
-                <textarea id="editor" class="code-area" spellcheck="false" readonly></textarea>
-                <div id="terminal" class="terminal-area">Live logs appear here...</div>
-            </div>
+            <iframe id="web-preview"></iframe>
+            <div class="terminal" id="terminal">System Logs & Terminal initialized...</div>
         </div>
     </div>
 
     <script>
-        function setPrompt(text) {
-            document.getElementById('bot-prompt').value = text;
-        }
+        let currentFiles = [];
+        let activeFileIndex = 0;
 
-        async function generateAndRun() {
-            const prompt = document.getElementById('bot-prompt').value;
+        async function generateProject() {
+            const type = document.getElementById('project-type').value;
             const token = document.getElementById('bot-token').value;
-            const workspace = document.getElementById('workspace');
-            const editor = document.getElementById('editor');
+            const prompt = document.getElementById('prompt').value;
             const terminal = document.getElementById('terminal');
-            const statusBadge = document.getElementById('status-badge');
+            const status = document.getElementById('status');
 
-            if(!prompt || !token) {
-                alert("Iltimos, Bot Token va vazifani kiriting!");
-                return;
-            }
+            if(!prompt) { alert("Topshiriq matnini kiriting!"); return; }
 
-            workspace.style.display = 'block';
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-
-            terminal.innerText = "⏳ Replit AI bot kodingizni generatsiya qilmoqda...\n";
-            statusBadge.innerText = "GENERATING...";
-            statusBadge.style.color = "#EAB308";
+            terminal.innerText = "⏳ AI arxitektura tuzmoqda va loyiha fayllarini yaratmoqda...\n";
+            status.innerText = "Building...";
+            status.style.color = "#F59E0B";
 
             try {
-                const response = await fetch('/generate-bot', {
+                const res = await fetch('/generate-project', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt, token })
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ prompt, type, token })
                 });
-                const data = await response.json();
+                const data = await res.json();
 
                 if(data.error) {
-                    terminal.innerText = "❌ Xatolik: " + data.error;
-                    statusBadge.innerText = "ERROR";
-                    statusBadge.style.color = "#EF4444";
+                    terminal.innerText += "❌ Xatolik: " + data.error;
+                    status.innerText = "Error";
+                    status.style.color = "#EF4444";
                 } else {
-                    editor.value = data.code;
-                    terminal.innerText = "✅ Bot kodi muvaffaqiyatli yaratildi!\n🚀 Bot orqa fonda ishga tushirilmoqda...\n";
-                    
-                    // Avtomatik orqa fonda yurgazish
-                    runCode(data.code);
+                    currentFiles = data.files || [];
+                    renderFiles();
+                    terminal.innerText += "✅ " + (data.logs || "Loyiha yaratildi!") + "\n";
+                    status.innerText = "Running";
+                    status.style.color = "#10B981";
+
+                    // Live Web Preview ko'rsatish
+                    updateWebPreview();
+
+                    // Python Bot bo'lsa fonda ishlatish
+                    const pyFile = currentFiles.find(f => f.name.endsWith('.py'));
+                    if(pyFile) {
+                        runPythonCode(pyFile.content);
+                    }
                 }
-            } catch(err) {
-                terminal.innerText = "❌ Server bilan bog'lanishda xatolik yuz berdi.";
+            } catch(e) {
+                terminal.innerText += "❌ Ulanishda xatolik!";
             }
         }
 
-        async function runCode(code) {
-            const terminal = document.getElementById('terminal');
-            const statusBadge = document.getElementById('status-badge');
+        function renderFiles() {
+            const tree = document.getElementById('file-tree');
+            const tabBar = document.getElementById('tab-bar');
+            tree.innerHTML = '';
+            tabBar.innerHTML = '';
 
-            try {
-                const response = await fetch('/run-python', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code })
-                });
-                const data = await response.json();
+            currentFiles.forEach((file, index) => {
+                const div = document.createElement('div');
+                div.className = `file-item ${index === activeFileIndex ? 'active' : ''}`;
+                div.innerText = '📄 ' + file.name;
+                div.onclick = () => switchFile(index);
+                tree.appendChild(div);
 
-                if(data.error) {
-                    terminal.innerText += "❌ Xatolik:\n" + data.error;
-                    statusBadge.innerText = "ERROR";
-                    statusBadge.style.color = "#EF4444";
-                } else {
-                    terminal.innerText += "✅ " + data.output + "\n🤖 Bot Telegram'da aktiv!";
-                    statusBadge.innerText = "RUNNING 24/7";
-                    statusBadge.style.color = "#22C55E";
+                if(index === activeFileIndex) {
+                    const tab = document.createElement('div');
+                    tab.className = 'tab active';
+                    tab.innerText = file.name;
+                    tabBar.appendChild(tab);
                 }
-            } catch(err) {
-                terminal.innerText += "\n❌ Aloqa uzildi!";
+            });
+
+            if(currentFiles[activeFileIndex]) {
+                document.getElementById('code-editor').value = currentFiles[activeFileIndex].content;
             }
+        }
+
+        function switchFile(index) {
+            if(currentFiles[activeFileIndex]) {
+                currentFiles[activeFileIndex].content = document.getElementById('code-editor').value;
+            }
+            activeFileIndex = index;
+            renderFiles();
+        }
+
+        function updateWebPreview() {
+            const htmlFile = currentFiles.find(f => f.name === 'index.html');
+            const cssFile = currentFiles.find(f => f.name === 'style.css');
+            const jsFile = currentFiles.find(f => f.name === 'script.js');
+
+            if(htmlFile) {
+                let content = htmlFile.content;
+                if(cssFile) content = content.replace('</head>', `<style>${cssFile.content}</style></head>`);
+                if(jsFile) content = content.replace('</body>', `<script>${jsFile.content}<\/script></body>`);
+                
+                const iframe = document.getElementById('web-preview');
+                iframe.srcdoc = content;
+            }
+        }
+
+        async function runPythonCode(code) {
+            const terminal = document.getElementById('terminal');
+            terminal.innerText += "🚀 Python kodi ishga tushirilmoqda...\n";
+            const res = await fetch('/run-python', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ code })
+            });
+            const data = await res.json();
+            terminal.innerText += (data.output || data.error) + "\n";
+        }
+
+        function exportZip() {
+            if(currentFiles.length === 0) return alert("Eksport qilish uchun loyiha mavjud emas!");
+            const zip = new JSZip();
+            currentFiles.forEach(f => zip.file(f.name, f.content));
+            zip.generateAsync({type:"blob"}).then(function(content) {
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(content);
+                a.download = "project.zip";
+                a.click();
+            });
         }
     </script>
 </body>
