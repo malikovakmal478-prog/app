@@ -1,7 +1,7 @@
 import os
 import json
+import sqlite3
 import subprocess
-import threading
 from flask import Flask, render_template_string, request, jsonify
 from flask_cors import CORS
 import google.generativeai as genai
@@ -13,102 +13,105 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 
-# Secrets va KV Storage
-PROJECT_SECRETS = {}
+DB_PATH = "replit_projects.db"
+
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS projects (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE,
+            files_json TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+init_db()
 
 @app.route('/')
 def index():
     if os.path.exists("index.html"):
         with open("index.html", "r", encoding="utf-8") as f:
             return render_template_string(f.read())
-    return "<h1>index.html fayli topilmadi!</h1>"
+    return "<h1>index.html topilmadi!</h1>"
 
-# 1. Replit Agent 3/4 - Full-Stack loyiha yaratish
+# 1. Multi-Step Prompt Generator & Persistent Storage
 @app.route('/agent-build', methods=['POST'])
 def agent_build():
     data = request.get_json() or {}
     prompt = data.get('prompt', '')
-    project_type = data.get('type', 'web')
-
+    project_name = data.get('name', 'default_project')
+    
     if not GEMINI_API_KEY:
         return jsonify({"error": "GEMINI_API_KEY sozlanmagan!"}), 400
 
-    system_instruction = f"""
-    Siz Replit Agent 4 avtonom AI tizimisiz. Foydalanuvchi talabiga ko'ra ishlaydigan loyiha fayllarini bering.
-    Loyiha turi: {project_type}. Secrets (agar bor bo'lsa): {json.dumps(PROJECT_SECRETS)}
+    system_prompt = f"""
+    Siz professional Replit Agent 4 muhandisisiz. Foydalanuvchi so'ragan loyiha uchun mukammal, to'liq ishlaydigan va hechnarsa chala qolmagan kodlarni tayyorlang.
+    Loyiha nomi: {project_name}
 
-    FAQAT QUYIDAGI JSON FORMATIDA JAVOB BERING (hech qanday qo'shimcha matnsiz):
+    Javobni FAQAT toza JSON formatida bering:
     {{
       "files": [
-        {{"name": "index.html", "content": "...html..."}},
-        {{"name": "style.css", "content": "...css..."}},
-        {{"name": "script.js", "content": "...js..."}},
-        {{"name": "main.py", "content": "...python..."}}
+        {{"name": "index.html", "content": "..."}},
+        {{"name": "style.css", "content": "..."}},
+        {{"name": "script.js", "content": "..."}}
       ],
-      "logs": "Replit Agent 4: Architecture designed -> Environment initialized -> Dependencies resolved -> System Live!"
+      "logs": "Multi-file structure compiled and saved to database successfully."
     }}
     """
 
     try:
         model = genai.GenerativeModel('gemini-2.5-flash')
-        response = model.generate_content(f"{system_instruction}\n\nLoyiha: {prompt}")
-        raw_text = response.text.replace("```json", "").replace("```", "").strip()
-        result = json.loads(raw_text)
+        response = model.generate_content(f"{system_prompt}\n\nTalab: {prompt}")
+        raw = response.text.replace("```json", "").replace("```", "").strip()
+        result = json.loads(raw)
+
+        # Bazaga saqlash
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("INSERT OR REPLACE INTO projects (name, files_json) VALUES (?, ?)", 
+                       (project_name, json.dumps(result.get('files', []))))
+        conn.commit()
+        conn.close()
+
         return jsonify(result)
     except Exception as e:
-        return jsonify({"error": f"Agent Xatoligi: {str(e)}"}), 500
+        return jsonify({"error": f"Agent Xatosi: {str(e)}"}), 500
 
-# 2. Ghostwriter AI (Explain, Debug, Refactor, Security Scan, Unit Test)
-@app.route('/ai-ghostwriter', methods=['POST'])
-def ai_ghostwriter():
+# 2. Auto-Debug & Code Fixer
+@app.route('/auto-fix', methods=['POST'])
+def auto_fix():
     data = request.get_json() or {}
-    action = data.get('action', 'explain')
-    code = data.get('code', '')
+    error_msg = data.get('error', '')
+    current_code = data.get('code', '')
 
     if not GEMINI_API_KEY:
-        return jsonify({"error": "GEMINI_API_KEY sozlanmagan!"}), 400
+        return jsonify({"error": "API Key yo'q!"}), 400
 
-    prompts = {
-        "explain": f"Ushbu kodni mantiqiy satrma-satr tushuntirib ber:\n\n{code}",
-        "debug": f"Ushbu koddagi xatolarni top, tuzat va tayyor kodni qaytar:\n\n{code}",
-        "refactor": f"Ushbu kodni optimallashtir va strukturasini yaxshila:\n\n{code}",
-        "test": f"Ushbu kod uchun to'liq Unit Test tayyorla:\n\n{code}",
-        "scan": f"Semgrep xavfsizlik standarti bo'yicha koddagi zaifliklarni skaner qil va hisobot ber:\n\n{code}"
-    }
-
+    prompt = f"Ushbu koddagi xatolikni avtomatik tuzat va FAQAT to'g'rilangan kodni qaytar:\n\nXato: {error_msg}\n\nKod:\n{current_code}"
+    
     try:
         model = genai.GenerativeModel('gemini-2.5-flash')
-        response = model.generate_content(prompts.get(action, prompts['explain']))
-        return jsonify({"result": response.text})
+        res = model.generate_content(prompt)
+        fixed_code = res.text.replace("```javascript", "").replace("```python", "").replace("```html", "").replace("```", "").strip()
+        return jsonify({"fixed_code": fixed_code})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# 3. Terminal & Shell Integratsiyasi (Real Code Execution)
+# 3. Terminal Executer
 @app.route('/run-terminal', methods=['POST'])
 def run_terminal():
     data = request.get_json() or {}
     command = data.get('command', '')
-    
     try:
-        # Xavfsiz shell ijrosi
         output = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT, timeout=10)
         return jsonify({"output": output.decode('utf-8')})
     except subprocess.CalledProcessError as e:
         return jsonify({"output": e.output.decode('utf-8')})
     except Exception as e:
-        return jsonify({"output": f"Terminal Xatosi: {str(e)}"})
-
-# 4. Secrets Management (.env)
-@app.route('/save-secret', methods=['POST'])
-def save_secret():
-    data = request.get_json() or {}
-    key = data.get('key')
-    val = data.get('val')
-    if key and val:
-        PROJECT_SECRETS[key] = val
-        os.environ[key] = val
-        return jsonify({"success": True, "secrets": list(PROJECT_SECRETS.keys())})
-    return jsonify({"error": "Noto'liq ma'lumot"}), 400
+        return jsonify({"output": f"Terminal Xato: {str(e)}"})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
