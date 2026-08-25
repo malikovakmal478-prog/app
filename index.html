@@ -3,205 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ULTRA REPLIT – AI Cloud Studio & IDE</title>
+    <title>Replit – Software Creation Platform</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         :root {
-            --bg: #0B0C0E;
-            --panel: #14161B;
-            --border: #232730;
-            --accent: #FF5733;
-            --accent-green: #10B981;
-            --text: #F3F4F6;
-            --text-dim: #9CA3AF;
+            --bg-dark: #0E1117;
+            --panel-bg: #151921;
+            --border: #282E3A;
+            --accent-orange: #FF5722;
+            --accent-green: #00E676;
+            --text-main: #F3F4F6;
+            --text-muted: #8C96A8;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        body { background: var(--bg-dark); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Top Navigation Header */
-        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; color: var(--accent); }
-        .logo span { background: var(--accent); color: #fff; width: 22px; height: 22px; border-radius: 4px; display: flex; justify-content: center; align-items: center; font-size: 0.75rem; }
+        /* Top Workspace Header */
+        header { background: var(--panel-bg); border-bottom: 1px solid var(--border); height: 48px; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; }
+        .brand { font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: 8px; color: #FFF; }
+        .logo-box { background: var(--accent-orange); width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 900; }
+        .badge-core { background: rgba(255, 87, 34, 0.15); color: var(--accent-orange); border: 1px solid var(--accent-orange); font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
 
-        .top-actions { display: flex; gap: 10px; align-items: center; }
-        .btn-top { background: #1E232D; color: var(--text); border: 1px solid var(--border); padding: 6px 14px; border-radius: 6px; font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: 0.2s; }
-        .btn-top:hover { background: #2A303D; }
-        .btn-primary { background: var(--accent); color: white; border: none; }
-        .btn-primary:hover { opacity: 0.9; }
+        .header-controls { display: flex; gap: 8px; align-items: center; }
+        .btn-act { background: #1E2430; color: var(--text-main); border: 1px solid var(--border); padding: 5px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 500; cursor: pointer; transition: 0.2s; }
+        .btn-act:hover { background: #2B3242; }
+        .btn-deploy { background: var(--accent-orange); color: white; border: none; font-weight: 600; }
 
-        /* Workspace Grid Layout */
-        .workspace-grid { display: flex; flex: 1; height: calc(100vh - 53px); }
+        /* Main Studio Grid */
+        .workspace { display: flex; flex: 1; height: calc(100vh - 48px); }
 
-        /* Left Panel: Explorer & AI Config */
-        .left-panel { width: 320px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-        .panel-tabs { display: flex; border-bottom: 1px solid var(--border); }
-        .p-tab { flex: 1; padding: 10px; text-align: center; font-size: 0.75rem; font-weight: 600; color: var(--text-dim); cursor: pointer; border-bottom: 2px solid transparent; }
-        .p-tab.active { color: var(--text); border-bottom-color: var(--accent); background: #1A1D24; }
+        /* Left Sidebar: Tools & Files */
+        .sidebar { width: 300px; background: var(--panel-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .nav-tabs { display: flex; border-bottom: 1px solid var(--border); background: #11141B; }
+        .n-tab { flex: 1; padding: 10px; text-align: center; font-size: 0.7rem; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; }
+        .n-tab.active { color: var(--text-main); border-bottom-color: var(--accent-orange); background: var(--panel-bg); }
 
-        .panel-content { padding: 14px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
-        .group { display: flex; flex-direction: column; gap: 6px; }
-        label { font-size: 0.7rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; }
-        input, select, textarea { background: #0B0C0E; border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; color: var(--text); font-size: 0.8rem; outline: none; }
-        input:focus, textarea:focus { border-color: var(--accent); }
-        textarea { resize: vertical; min-height: 70px; }
+        .side-body { padding: 12px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .field-group { display: flex; flex-direction: column; gap: 4px; }
+        label { font-size: 0.68rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+        input, select, textarea { background: var(--bg-dark); border: 1px solid var(--border); border-radius: 6px; padding: 8px; color: var(--text-main); font-size: 0.8rem; outline: none; }
+        input:focus, textarea:focus { border-color: var(--accent-orange); }
+        textarea { resize: vertical; min-height: 80px; }
 
-        .file-tree { display: flex; flex-direction: column; gap: 4px; }
-        .file-item { padding: 6px 10px; border-radius: 4px; font-size: 0.8rem; font-family: 'Fira Code', monospace; cursor: pointer; display: flex; align-items: center; gap: 8px; color: var(--text-dim); }
-        .file-item:hover, .file-item.active { background: #1F242D; color: var(--accent); }
+        .tree-container { margin-top: 8px; display: flex; flex-direction: column; gap: 2px; }
+        .tree-node { padding: 6px 10px; border-radius: 4px; font-size: 0.8rem; font-family: 'Fira Code', monospace; cursor: pointer; display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+        .tree-node:hover, .tree-node.active { background: #1F2633; color: var(--accent-orange); }
 
-        /* Center Panel: Code Editor */
-        .editor-panel { flex: 1; display: flex; flex-direction: column; border-right: 1px solid var(--border); }
-        .tab-bar { background: #0E1013; border-bottom: 1px solid var(--border); display: flex; }
-        .tab { padding: 8px 14px; font-size: 0.8rem; font-family: 'Fira Code', monospace; border-right: 1px solid var(--border); color: var(--text-dim); cursor: pointer; }
-        .tab.active { background: var(--panel); color: var(--text); border-top: 2px solid var(--accent); }
+        /* Middle Panel: Code Editor */
+        .editor-area { flex: 1; display: flex; flex-direction: column; border-right: 1px solid var(--border); }
+        .file-tabs { background: #0B0D11; border-bottom: 1px solid var(--border); display: flex; }
+        .f-tab { padding: 8px 14px; font-size: 0.78rem; font-family: 'Fira Code', monospace; border-right: 1px solid var(--border); color: var(--text-muted); cursor: pointer; }
+        .f-tab.active { background: var(--panel-bg); color: var(--text-main); border-top: 2px solid var(--accent-orange); }
 
-        .editor { flex: 1; background: #0B0C0E; border: none; padding: 16px; color: #E5E7EB; font-family: 'Fira Code', monospace; font-size: 0.85rem; line-height: 1.5; resize: none; outline: none; }
+        .code-input { flex: 1; background: var(--bg-dark); border: none; padding: 14px; color: #E5E7EB; font-family: 'Fira Code', monospace; font-size: 0.85rem; line-height: 1.5; resize: none; outline: none; }
 
-        /* Right Panel: Web Preview, AI Tools & Terminal */
-        .right-panel { width: 42%; display: flex; flex-direction: column; background: #fff; }
-        .rp-header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 8px 14px; display: flex; justify-content: space-between; align-items: center; color: var(--text); font-size: 0.8rem; }
+        /* Right Panel: Live Preview & Terminal */
+        .right-area { width: 42%; display: flex; flex-direction: column; background: #FFF; }
+        .right-header { background: var(--panel-bg); border-bottom: 1px solid var(--border); padding: 6px 14px; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); font-size: 0.78rem; }
+        .view-toggle { display: flex; gap: 4px; }
+        .vt-btn { background: #1E2430; color: var(--text-main); border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
+        .vt-btn.active { background: var(--accent-orange); }
 
-        .view-switch { display: flex; gap: 6px; }
-        .v-btn { background: #1E232D; color: var(--text); border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; }
-        .v-btn.active { background: var(--accent); }
+        iframe { flex: 1; border: none; background: #FFFFFF; }
+        .ai-out-box { flex: 1; background: #0B0D11; color: #D1D5DB; padding: 14px; font-family: 'Fira Code', monospace; font-size: 0.8rem; overflow-y: auto; display: none; white-space: pre-wrap; }
 
-        iframe { flex: 1; border: none; background: #ffffff; }
-        .ai-tools-output { flex: 1; background: #0E1013; color: #D1D5DB; padding: 14px; font-family: 'Fira Code', monospace; font-size: 0.8rem; overflow-y: auto; display: none; white-space: pre-wrap; }
-
-        .terminal { height: 160px; background: #050506; border-top: 1px solid var(--border); color: var(--accent-green); padding: 10px 14px; font-family: 'Fira Code', monospace; font-size: 0.75rem; overflow-y: auto; white-space: pre-wrap; }
+        .terminal-box { height: 160px; background: #07080A; border-top: 1px solid var(--border); color: var(--accent-green); padding: 10px 14px; font-family: 'Fira Code', monospace; font-size: 0.75rem; overflow-y: auto; white-space: pre-wrap; }
     </style>
 </head>
 <body>
 
+    <!-- Replit Header Bar -->
     <header>
-        <div class="logo"><span>⚡</span> ULTRA REPLIT AI IDE</div>
-        <div class="top-actions">
-            <button class="btn-top" onclick="runAITask('explain')">💡 Explain Code</button>
-            <button class="btn-top" onclick="runAITask('debug')">🐛 Debug AI</button>
-            <button class="btn-top" onclick="runAITask('refactor')">✨ Refactor</button>
-            <button class="btn-top" onclick="runAITask('test')">🧪 Unit Tests</button>
-            <button class="btn-top btn-primary" onclick="exportZip()">📦 Export ZIP</button>
+        <div class="brand">
+            <div class="logo-box">R</div>
+            Replit Studio 
+            <span class="badge-core">Agent 4 Core</span>
+        </div>
+        <div class="header-controls">
+            <button class="btn-act" onclick="runGhostwriter('explain')">💡 Explain</button>
+            <button class="btn-act" onclick="runGhostwriter('debug')">🐛 Debug</button>
+            <button class="btn-act" onclick="runGhostwriter('scan')">🔒 Security Scan</button>
+            <button class="btn-act" onclick="runGhostwriter('test')">🧪 Unit Tests</button>
+            <button class="btn-act btn-deploy" onclick="downloadZip()">📦 Export ZIP</button>
         </div>
     </header>
 
-    <div class="workspace-grid">
-        <!-- Left Panel -->
-        <div class="left-panel">
-            <div class="panel-tabs">
-                <div class="p-tab active" id="tab-build" onclick="switchPanel('build')">AGENT BUILDER</div>
-                <div class="p-tab" id="tab-env" onclick="switchPanel('env')">SECRETS & DB</div>
+    <div class="workspace">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+            <div class="nav-tabs">
+                <div class="n-tab active" id="tab-agent" onclick="showSideTab('agent')">REPLIT AGENT</div>
+                <div class="n-tab" id="tab-sec" onclick="showSideTab('sec')">SECRETS & DB</div>
             </div>
 
-            <div class="panel-content" id="panel-build">
-                <div class="group">
-                    <label>Loyiha Turi</label>
-                    <select id="project-type">
-                        <option value="web">🌐 Full-Stack Web App (HTML/CSS/JS)</option>
-                        <option value="bot">🤖 Telegram Bot (24/7 Always-On)</option>
-                        <option value="python">🐍 Python Data Science / Backend</option>
+            <div class="side-body" id="body-agent">
+                <div class="field-group">
+                    <label>App Stack</label>
+                    <select id="app-type">
+                        <option value="web">🌐 Full-stack Web (HTML/CSS/JS/Node)</option>
+                        <option value="bot">🤖 Telegram Bot (Always-On 24/7)</option>
+                        <option value="python">🐍 Python Script & FastAPI</option>
                     </select>
                 </div>
 
-                <div class="group">
-                    <label>Telegram Bot Token (agar bot bo'lsa)</label>
-                    <input type="text" id="bot-token" placeholder="123456:ABC..." />
+                <div class="field-group">
+                    <label>Telegram Bot Token (Optional)</label>
+                    <input type="text" id="bot-token" placeholder="Token: 123456:ABC..." />
                 </div>
 
-                <div class="group">
-                    <label>AI Prompt (Replit Agent)</label>
-                    <textarea id="prompt" placeholder="Masalan: Interaktiv Ob-havo ilovasini HTML/CSS/JS ko'rinishida tuzib ber..."></textarea>
+                <div class="field-group">
+                    <label>Build Prompt (Replit Agent 4)</label>
+                    <textarea id="prompt-input" placeholder="What do you want to build today? (e.g., SaaS Dashboard, Chat App...)"></textarea>
                 </div>
 
-                <button class="btn-top btn-primary" style="padding: 10px;" onclick="generateProject()">⚡ Loyihani Generatsiya Qilish</button>
+                <button class="btn-act btn-deploy" style="padding: 10px;" onclick="buildProject()">⚡ Build with Agent</button>
 
-                <div class="group" style="margin-top: 10px;">
-                    <label>Fayllar Daraxti (Multi-File Tree)</label>
-                    <div class="file-tree" id="file-tree">
-                        <div style="font-size: 0.75rem; color: var(--text-dim);">Fayllar hali yaratilmadi.</div>
+                <div class="field-group" style="margin-top: 8px;">
+                    <label>File Explorer</label>
+                    <div class="tree-container" id="file-tree">
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">No files generated yet.</div>
                     </div>
                 </div>
             </div>
 
-            <div class="panel-content" id="panel-env" style="display: none;">
-                <div class="group">
-                    <label>Secrets (.env Variables)</label>
-                    <input type="text" id="sec-key" placeholder="KEY (Masalan: API_KEY)" />
+            <div class="side-body" id="body-sec" style="display: none;">
+                <div class="field-group">
+                    <label>Environment Secrets (.env)</label>
+                    <input type="text" id="sec-key" placeholder="KEY_NAME" />
                     <input type="text" id="sec-val" placeholder="VALUE" style="margin-top: 4px;" />
-                    <button class="btn-top" style="margin-top: 4px;" onclick="addSecret()">Save Secret</button>
+                    <button class="btn-act" style="margin-top: 4px;" onclick="saveSecret()">Save Secret</button>
                 </div>
-                <div class="group" style="margin-top: 10px;">
-                    <label>Saqlangan Kalitlar</label>
-                    <div id="secrets-list" style="font-size: 0.75rem; color: var(--accent-green);">Aktiv secrets mavjud emas.</div>
+                <div class="field-group" style="margin-top: 10px;">
+                    <label>Saved Secrets</label>
+                    <div id="secrets-log" style="font-size: 0.75rem; color: var(--accent-green);">No active secrets.</div>
                 </div>
             </div>
         </div>
 
-        <!-- Center Panel: Editor -->
-        <div class="editor-panel">
-            <div class="tab-bar" id="tab-bar">
-                <div class="tab active">index.file</div>
+        <!-- Center Code Editor -->
+        <div class="editor-area">
+            <div class="file-tabs" id="file-tabs">
+                <div class="f-tab active">main.file</div>
             </div>
-            <textarea class="editor" id="code-editor" spellcheck="false" placeholder="// Kodi shu yerda namoyon bo'ladi..."></textarea>
+            <textarea class="code-input" id="editor" spellcheck="false" placeholder="// Replit Ghostwriter ready..."></textarea>
         </div>
 
-        <!-- Right Panel: Preview & Logs -->
-        <div class="right-panel">
-            <div class="rp-header">
-                <span id="preview-title">🖥 Live Web Preview</span>
-                <div class="view-switch">
-                    <button class="v-btn active" id="btn-web-view" onclick="toggleRightView('web')">Web</button>
-                    <button class="v-btn" id="btn-ai-view" onclick="toggleRightView('ai')">AI Output</button>
+        <!-- Right Preview & Log Output -->
+        <div class="right-area">
+            <div class="right-header">
+                <span>🖥 Web Preview / Output</span>
+                <div class="view-toggle">
+                    <button class="vt-btn active" id="btn-web" onclick="switchRightPane('web')">Web View</button>
+                    <button class="vt-btn" id="btn-ai" onclick="switchRightPane('ai')">AI Output</button>
                 </div>
             </div>
-            <iframe id="web-preview"></iframe>
-            <div class="ai-tools-output" id="ai-output">AI javoblari shu yerda ko'rinadi...</div>
-            <div class="terminal" id="terminal">System Logs & Deployment Status...</div>
+            <iframe id="iframe-view"></iframe>
+            <div class="ai-out-box" id="ai-view">AI responses will appear here...</div>
+            <div class="terminal-box" id="term-log">Replit System Initialized...</div>
         </div>
     </div>
 
     <script>
         let currentFiles = [];
-        let activeFileIndex = 0;
+        let activeIndex = 0;
 
-        function switchPanel(panel) {
-            document.getElementById('panel-build').style.display = panel === 'build' ? 'flex' : 'none';
-            document.getElementById('panel-env').style.display = panel === 'env' ? 'flex' : 'none';
-            document.getElementById('tab-build').className = `p-tab ${panel === 'build' ? 'active' : ''}`;
-            document.getElementById('tab-env').className = `p-tab ${panel === 'env' ? 'active' : ''}`;
+        function showSideTab(tab) {
+            document.getElementById('body-agent').style.display = tab === 'agent' ? 'flex' : 'none';
+            document.getElementById('body-sec').style.display = tab === 'sec' ? 'flex' : 'none';
+            document.getElementById('tab-agent').className = `n-tab ${tab === 'agent' ? 'active' : ''}`;
+            document.getElementById('tab-sec').className = `n-tab ${tab === 'sec' ? 'active' : ''}`;
         }
 
-        function toggleRightView(view) {
-            const iframe = document.getElementById('web-preview');
-            const aiOutput = document.getElementById('ai-output');
-            const btnWeb = document.getElementById('btn-web-view');
-            const btnAi = document.getElementById('btn-ai-view');
+        function switchRightPane(pane) {
+            const iframe = document.getElementById('iframe-view');
+            const aiView = document.getElementById('ai-view');
+            const btnWeb = document.getElementById('btn-web');
+            const btnAi = document.getElementById('btn-ai');
 
-            if(view === 'web') {
+            if(pane === 'web') {
                 iframe.style.display = 'block';
-                aiOutput.style.display = 'none';
-                btnWeb.className = 'v-btn active';
-                btnAi.className = 'v-btn';
+                aiView.style.display = 'none';
+                btnWeb.className = 'vt-btn active';
+                btnAi.className = 'vt-btn';
             } else {
                 iframe.style.display = 'none';
-                aiOutput.style.display = 'block';
-                btnWeb.className = 'v-btn';
-                btnAi.className = 'v-btn active';
+                aiView.style.display = 'block';
+                btnWeb.className = 'vt-btn';
+                btnAi.className = 'vt-btn active';
             }
         }
 
-        async function generateProject() {
-            const type = document.getElementById('project-type').value;
+        async function buildProject() {
+            const type = document.getElementById('app-type').value;
             const token = document.getElementById('bot-token').value;
-            const prompt = document.getElementById('prompt').value;
-            const terminal = document.getElementById('terminal');
+            const prompt = document.getElementById('prompt-input').value;
+            const term = document.getElementById('term-log');
 
-            if(!prompt) { alert("Topshiriqni kiriting!"); return; }
+            if(!prompt) { alert("Please enter a build prompt!"); return; }
 
-            terminal.innerText = "⏳ Replit Agent loyiha fayllarini tuzmoqda...\n";
+            term.innerText = "⏳ Replit Agent 4: Architecting solution & generating files...\n";
 
             try {
-                const res = await fetch('/generate-all', {
+                const res = await fetch('/agent-build', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ prompt, type, token })
@@ -209,117 +213,117 @@
                 const data = await res.json();
 
                 if(data.error) {
-                    terminal.innerText += "❌ Xatolik: " + data.error;
+                    term.innerText += "❌ Error: " + data.error;
                 } else {
                     currentFiles = data.files || [];
                     renderFiles();
-                    terminal.innerText += "✅ " + (data.logs || "Loyiha tayyorlandi!") + "\n";
+                    term.innerText += "✅ " + (data.logs || "Build successful!") + "\n";
                     
-                    updateWebPreview();
+                    updatePreview();
                     const pyFile = currentFiles.find(f => f.name.endsWith('.py'));
-                    if(pyFile) runPythonCode(pyFile.content);
+                    if(pyFile) runVM(pyFile.content);
                 }
             } catch(e) {
-                terminal.innerText += "❌ Serverga ulanib bo'lmadi!";
+                term.innerText += "❌ Network connection error!";
             }
         }
 
         function renderFiles() {
             const tree = document.getElementById('file-tree');
-            const tabBar = document.getElementById('tab-bar');
+            const tabs = document.getElementById('file-tabs');
             tree.innerHTML = '';
-            tabBar.innerHTML = '';
+            tabs.innerHTML = '';
 
             currentFiles.forEach((file, index) => {
-                const div = document.createElement('div');
-                div.className = `file-item ${index === activeFileIndex ? 'active' : ''}`;
-                div.innerText = '📄 ' + file.name;
-                div.onclick = () => switchFile(index);
-                tree.appendChild(div);
+                const node = document.createElement('div');
+                node.className = `tree-node ${index === activeIndex ? 'active' : ''}`;
+                node.innerText = '📄 ' + file.name;
+                node.onclick = () => selectFile(index);
+                tree.appendChild(node);
 
-                if(index === activeFileIndex) {
+                if(index === activeIndex) {
                     const tab = document.createElement('div');
-                    tab.className = 'tab active';
+                    tab.className = 'f-tab active';
                     tab.innerText = file.name;
-                    tabBar.appendChild(tab);
+                    tabs.appendChild(tab);
                 }
             });
 
-            if(currentFiles[activeFileIndex]) {
-                document.getElementById('code-editor').value = currentFiles[activeFileIndex].content;
+            if(currentFiles[activeIndex]) {
+                document.getElementById('editor').value = currentFiles[activeIndex].content;
             }
         }
 
-        function switchFile(index) {
-            if(currentFiles[activeFileIndex]) {
-                currentFiles[activeFileIndex].content = document.getElementById('code-editor').value;
+        function selectFile(index) {
+            if(currentFiles[activeIndex]) {
+                currentFiles[activeIndex].content = document.getElementById('editor').value;
             }
-            activeFileIndex = index;
+            activeIndex = index;
             renderFiles();
         }
 
-        function updateWebPreview() {
-            const htmlFile = currentFiles.find(f => f.name === 'index.html');
-            const cssFile = currentFiles.find(f => f.name === 'style.css');
-            const jsFile = currentFiles.find(f => f.name === 'script.js');
+        function updatePreview() {
+            const html = currentFiles.find(f => f.name === 'index.html');
+            const css = currentFiles.find(f => f.name === 'style.css');
+            const js = currentFiles.find(f => f.name === 'script.js');
 
-            if(htmlFile) {
-                let content = htmlFile.content;
-                if(cssFile) content = content.replace('</head>', `<style>${cssFile.content}</style></head>`);
-                if(jsFile) content = content.replace('</body>', `<script>${jsFile.content}<\/script></body>`);
+            if(html) {
+                let code = html.content;
+                if(css) code = code.replace('</head>', `<style>${css.content}</style></head>`);
+                if(js) code = code.replace('</body>', `<script>${js.content}<\/script></body>`);
                 
-                document.getElementById('web-preview').srcdoc = content;
-                toggleRightView('web');
+                document.getElementById('iframe-view').srcdoc = code;
+                switchRightPane('web');
             }
         }
 
-        async function runPythonCode(code) {
-            const terminal = document.getElementById('terminal');
-            terminal.innerText += "🚀 Bot / Server background fonda ishga tushirildi...\n";
-            const res = await fetch('/run-python', {
+        async function runVM(code) {
+            const term = document.getElementById('term-log');
+            term.innerText += "🚀 Executing background VM process...\n";
+            const res = await fetch('/run-vm', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ code })
             });
             const data = await res.json();
-            terminal.innerText += (data.output || data.error) + "\n";
+            term.innerText += (data.output || data.error) + "\n";
         }
 
-        async function runAITask(task) {
-            const code = document.getElementById('code-editor').value;
-            const aiOutput = document.getElementById('ai-output');
-            if(!code) { alert("Tahlil qilish uchun kod yo'q!"); return; }
+        async function runGhostwriter(action) {
+            const code = document.getElementById('editor').value;
+            const aiView = document.getElementById('ai-view');
+            if(!code) { alert("No code selected to process!"); return; }
 
-            toggleRightView('ai');
-            aiOutput.innerText = "⏳ AI kodni tahlil qilmoqda...";
+            switchRightPane('ai');
+            aiView.innerText = "⏳ Ghostwriter processing request...";
 
-            const res = await fetch('/ai-assistant', {
+            const res = await fetch('/ai-ghostwriter', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ task, code })
+                body: JSON.stringify({ action, code })
             });
             const data = await res.json();
-            aiOutput.innerText = data.result || data.error;
+            aiView.innerText = data.result || data.error;
         }
 
-        function addSecret() {
+        function saveSecret() {
             const k = document.getElementById('sec-key').value;
             const v = document.getElementById('sec-val').value;
             if(k && v) {
-                document.getElementById('secrets-list').innerText += `\n🔒 ${k}=***`;
+                document.getElementById('secrets-log').innerText += `\n🔒 ${k}=***`;
                 document.getElementById('sec-key').value = '';
                 document.getElementById('sec-val').value = '';
             }
         }
 
-        function exportZip() {
-            if(currentFiles.length === 0) return alert("Eksport qilish uchun fayllar yo'q!");
+        function downloadZip() {
+            if(currentFiles.length === 0) return alert("No active project files to export!");
             const zip = new JSZip();
             currentFiles.forEach(f => zip.file(f.name, f.content));
             zip.generateAsync({type:"blob"}).then(function(content) {
                 const a = document.createElement("a");
                 a.href = URL.createObjectURL(content);
-                a.download = "replit_project.zip";
+                a.download = "replit_app.zip";
                 a.click();
             });
         }
