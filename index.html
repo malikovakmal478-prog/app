@@ -21,7 +21,6 @@
             overflow: hidden;
         }
 
-        /* Top Header Navigation */
         header {
             background-color: #161b22;
             border-bottom: 1px solid #30363d;
@@ -79,7 +78,6 @@
             background-color: #b62324;
         }
 
-        /* Editor Layout */
         .workspace {
             display: flex;
             flex: 1;
@@ -167,7 +165,6 @@
     </header>
 
     <div class="workspace">
-        <!-- Editor Section -->
         <div class="editor-container">
             <div class="tabs">
                 <button class="tab active" onclick="openTab('html')">index.html</button>
@@ -213,7 +210,6 @@ button {
 }</textarea>
         </div>
 
-        <!-- Preview Section -->
         <div class="preview-container">
             <div class="preview-header">
                 <span>🖥 JONLI NATIJA (LIVE PREVIEW)</span>
@@ -259,6 +255,20 @@ button {
             iframe.close();
         }
 
+        async function runPythonOnServer(pyCode) {
+            try {
+                const response = await fetch('https://mini-replit.onrender.com/run-python', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: pyCode })
+                });
+                const data = await response.json();
+                return data;
+            } catch (err) {
+                return { error: 'Server bilan aloqa uzildi!' };
+            }
+        }
+
         function clearCode() {
             id('html-code').value = '';
             id('css-code').value = '';
@@ -270,7 +280,6 @@ button {
             return document.getElementById(name);
         }
 
-        // Avtomatik birinchi marta kodni yurgizish
         window.onload = runCode;
     </script>
 </body>
