@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Replit Ultra Studio</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="[https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap)" rel="stylesheet">
+    <script src="[https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js](https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js)"></script>
+    <script src="[https://telegram.org/js/telegram-web-app.js](https://telegram.org/js/telegram-web-app.js)"></script>
     <style>
         :root { --bg: #0E1117; --panel: #151921; --border: #282E3A; --orange: #FF5722; --green: #00E676; --text: #F3F4F6; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
@@ -54,7 +54,7 @@
             <input type="text" id="proj-name" value="my_app" />
 
             <label style="font-size: 0.7rem; color: #8C96A8;">BUILD PROMPT (FULL-STACK)</label>
-            <textarea id="prompt-input" placeholder="Yaratmoqchi bo'lgan Mini App yoki loyihani batafsil yozing..."></textarea>
+            <textarea id="prompt-input" placeholder="Loyiha nomini yozing..."></textarea>
             
             <button class="btn btn-fix" onclick="buildProject()">⚡ Build Super App</button>
 
@@ -68,7 +68,7 @@
         <div class="right-area">
             <iframe id="iframe-view"></iframe>
             <div class="terminal">
-                <div class="term-log" id="term-log">Replit Workstation initialized...\n$ </div>
+                <div class="term-log" id="term-log">Replit Workstation ready...&#10;$ </div>
                 <div class="term-input">
                     <span style="color: var(--orange); padding: 0 4px;">$</span>
                     <input type="text" id="term-cmd" onkeydown="handleTerminal(event)" placeholder="Command..." />
@@ -82,7 +82,7 @@
         let files = [];
         let activeIdx = 0;
 
-        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' }});
+        require.config({ paths: { 'vs': '[https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs](https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs)' }});
         require(['vs/editor/editor.main'], function() {
             editor = monaco.editor.create(document.getElementById('monaco-container'), {
                 value: "// Replit Engine Tayyor...",
@@ -100,21 +100,25 @@
             if(!prompt) return alert("Prompt kiriting!");
             term.innerText += "\n⏳ AI Full-Stack loyihani shakllantirmoqda...\n";
 
-            const res = await fetch('/agent-build', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ prompt, name })
-            });
-            const data = await res.json();
+            try {
+                const res = await fetch('/agent-build', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ prompt, name })
+                });
+                const data = await res.json();
 
-            if(data.files) {
-                files = data.files;
-                activeIdx = 0;
-                renderTree();
-                term.innerText += "✅ Loyiha yaratildi va ma'lumotlar bazasiga saqlandi!\n$ ";
-                runCode();
-            } else {
-                term.innerText += "❌ Xato: " + data.error + "\n$ ";
+                if(data.files) {
+                    files = data.files;
+                    activeIdx = 0;
+                    renderTree();
+                    term.innerText += "✅ Loyiha yaratildi va saqlandi!\n$ ";
+                    runCode();
+                } else {
+                    term.innerText += "❌ Xato: " + (data.error || "Noma'lum xato") + "\n$ ";
+                }
+            } catch(e) {
+                term.innerText += "❌ Server bilan aloqa uzildi!\n$ ";
             }
         }
 
@@ -144,8 +148,7 @@
 
             if(html) {
                 let doc = html.content;
-                // TailwindCSS va Telegram SDK ulash
-                const cdn = `<script src="https://cdn.tailwindcss.com"><\/script><script src="https://telegram.org/js/telegram-web-app.js"><\/script>`;
+                const cdn = `<script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"><\/script><script src="[https://telegram.org/js/telegram-web-app.js](https://telegram.org/js/telegram-web-app.js)"><\/script>`;
                 doc = doc.replace('<head>', `<head>${cdn}`);
                 if(css) doc = doc.replace('</head>', `<style>${css.content}</style></head>`);
                 if(js) doc = doc.replace('</body>', `<script>${js.content}<\/script></body>`);
@@ -157,17 +160,17 @@
         async function autoFixCode() {
             const code = editor.getValue();
             const term = document.getElementById('term-log');
-            term.innerText += "\n⚡ Auto-Fixer koddagi xatoliklarni tuzatmoqda...\n";
+            term.innerText += "\n⚡ Auto-Fixer ishlamoqda...\n";
 
             const res = await fetch('/auto-fix', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ code, error: "Optimallash va xatolarini tuzat" })
+                body: JSON.stringify({ code, error: "Tuzat va optimallashtir" })
             });
             const data = await res.json();
             if(data.fixed_code) {
                 editor.setValue(data.fixed_code);
-                term.innerText += "✅ Kod muvaffaqiyatli tuzatildi!\n$ ";
+                term.innerText += "✅ Kod tuzatildi!\n$ ";
             }
         }
 
