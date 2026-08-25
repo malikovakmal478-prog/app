@@ -38,7 +38,7 @@ def generate_bot():
     """
 
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash')
         response = model.generate_content(f"{system_instruction}\n\nFoydalanuvchi talabi: {prompt}")
         
         generated_code = response.text.replace("```python", "").replace("```", "").strip()
