@@ -37,7 +37,6 @@ def index():
             return render_template_string(f.read())
     return "<h1>index.html topilmadi!</h1>"
 
-# 1. Multi-Step Prompt Generator & Persistent Storage
 @app.route('/agent-build', methods=['POST'])
 def agent_build():
     data = request.get_json() or {}
@@ -48,27 +47,34 @@ def agent_build():
         return jsonify({"error": "GEMINI_API_KEY sozlanmagan!"}), 400
 
     system_prompt = f"""
-    Siz professional Replit Agent 4 muhandisisiz. Foydalanuvchi so'ragan loyiha uchun mukammal, to'liq ishlaydigan va hechnarsa chala qolmagan kodlarni tayyorlang.
+    Siz Replit Agent-siz. Telegram Mini App uchun to'liq HTML, CSS, JS kodlarini tayyorlang.
     Loyiha nomi: {project_name}
 
-    Javobni FAQAT toza JSON formatida bering:
+    FAQAT quyidagi JSON formatida javob bering (hech qanday ortiqcha matnsiz):
     {{
       "files": [
         {{"name": "index.html", "content": "..."}},
         {{"name": "style.css", "content": "..."}},
         {{"name": "script.js", "content": "..."}}
-      ],
-      "logs": "Multi-file structure compiled and saved to database successfully."
+      ]
     }}
     """
 
     try:
         model = genai.GenerativeModel('gemini-2.5-flash')
         response = model.generate_content(f"{system_prompt}\n\nTalab: {prompt}")
-        raw = response.text.replace("```json", "").replace("```", "").strip()
-        result = json.loads(raw)
+        
+        raw_text = response.text.strip()
+        if raw_text.startswith("```json"):
+            raw_text = raw_text[7:]
+        if raw_text.startswith("```"):
+            raw_text = raw_text[3:]
+        if raw_text.endswith("```"):
+            raw_text = raw_text[:-3]
+        raw_text = raw_text.strip()
 
-        # Bazaga saqlash
+        result = json.loads(raw_text)
+
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("INSERT OR REPLACE INTO projects (name, files_json) VALUES (?, ?)", 
@@ -80,7 +86,6 @@ def agent_build():
     except Exception as e:
         return jsonify({"error": f"Agent Xatosi: {str(e)}"}), 500
 
-# 2. Auto-Debug & Code Fixer
 @app.route('/auto-fix', methods=['POST'])
 def auto_fix():
     data = request.get_json() or {}
@@ -100,7 +105,6 @@ def auto_fix():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# 3. Terminal Executer
 @app.route('/run-terminal', methods=['POST'])
 def run_terminal():
     data = request.get_json() or {}
