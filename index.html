@@ -1,76 +1,110 @@
 <!DOCTYPE html>
-<html lang="uz">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Replit Studio - Render Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <title>Replit IDE Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
     <style>
-        :root { --bg: #0E1117; --panel: #151921; --border: #282E3A; --orange: #FF5722; --green: #00E676; --text: #F3F4F6; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        :root {
+            --bg-dark: #0e1117;
+            --sidebar-bg: #151921;
+            --border-color: #2b3245;
+            --accent-orange: #f26207;
+            --accent-green: #00d67d;
+            --text-main: #f3f4f6;
+            --text-muted: #8c96a8;
+        }
 
-        header { background: var(--panel); border-bottom: 1px solid var(--border); height: 48px; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; }
-        .brand { font-weight: 700; display: flex; align-items: center; gap: 8px; }
-        .logo { background: var(--orange); width: 22px; height: 22px; border-radius: 4px; text-align: center; font-weight: 900; line-height: 22px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg-dark); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        .btn { background: #1E2430; color: #FFF; border: 1px solid var(--border); padding: 5px 10px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; }
-        .btn-run { background: var(--green); color: #000; font-weight: 700; border: none; }
-        .btn-fix { background: var(--orange); color: #FFF; font-weight: 700; border: none; }
+        /* Replit Header */
+        header { height: 44px; background: var(--sidebar-bg); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; padding: 0 12px; }
+        .logo-box { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.9rem; }
+        .replit-logo { width: 20px; height: 20px; background: var(--accent-orange); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 11px; }
 
-        .workspace { display: flex; flex: 1; height: calc(100vh - 48px); }
-        .sidebar { width: 300px; background: var(--panel); border-right: 1px solid var(--border); padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+        .run-btn { background: var(--accent-green); color: #000; border: none; padding: 5px 16px; border-radius: 4px; font-weight: 600; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .run-btn:hover { opacity: 0.9; }
 
-        input, textarea { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px; color: #FFF; font-size: 0.8rem; width: 100%; outline: none; }
-        textarea { height: 100px; resize: none; }
+        /* Replit Workspace Layout */
+        .workspace { flex: 1; display: flex; height: calc(100vh - 44px); }
 
-        .editor-area { flex: 1; display: flex; flex-direction: column; background: var(--bg); }
-        #monaco-container { flex: 1; width: 100%; height: calc(100vh - 85px); }
+        /* Left File Explorer Panel */
+        .sidebar { width: 240px; background: var(--sidebar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
+        .sidebar-title { padding: 10px 12px; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--border-color); }
+        .file-list { flex: 1; padding: 8px; list-style: none; font-family: 'Fira Code', monospace; font-size: 0.8rem; }
+        .file-item { padding: 6px 8px; border-radius: 4px; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+        .file-item:hover, .file-item.active { background: #1e2430; color: #fff; }
 
-        .right-area { width: 40%; display: flex; flex-direction: column; background: #FFF; }
-        iframe { flex: 1; border: none; background: #FFF; }
+        /* Agent Prompt Panel */
+        .prompt-box { padding: 10px; border-top: 1px solid var(--border-color); background: var(--sidebar-bg); }
+        .prompt-box input, .prompt-box textarea { width: 100%; background: var(--bg-dark); border: 1px solid var(--border-color); color: #fff; border-radius: 4px; padding: 6px; font-size: 0.75rem; margin-bottom: 6px; outline: none; }
+        .prompt-box textarea { height: 60px; resize: none; }
+        .build-btn { width: 100%; background: var(--accent-orange); color: #fff; border: none; padding: 6px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
 
-        .terminal { height: 160px; background: #07080A; border-top: 1px solid var(--border); display: flex; flex-direction: column; }
-        .term-log { flex: 1; padding: 8px; color: var(--green); font-family: 'Fira Code', monospace; font-size: 0.75rem; overflow-y: auto; white-space: pre-wrap; }
-        .term-input { display: flex; border-top: 1px solid var(--border); padding: 4px; background: #07080A; }
-        .term-input input { border: none; background: transparent; color: #FFF; font-family: 'Fira Code', monospace; font-size: 0.75rem; }
+        /* Middle Editor Section */
+        .editor-section { flex: 1; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); }
+        .tabs-header { height: 35px; background: var(--sidebar-bg); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; }
+        .tab { padding: 0 14px; height: 100%; display: flex; align-items: center; border-right: 1px solid var(--border-color); font-size: 0.8rem; font-family: 'Fira Code', monospace; color: var(--text-muted); cursor: pointer; background: var(--sidebar-bg); }
+        .tab.active { background: var(--bg-dark); color: #fff; border-top: 2px solid var(--accent-orange); }
+
+        #editor-container { flex: 1; width: 100%; }
+
+        /* Right Panel: Webview Preview & Console Terminal */
+        .right-section { width: 45%; display: flex; flex-direction: column; background: #fff; }
+        .preview-header { height: 35px; background: var(--sidebar-bg); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; padding: 0 10px; font-size: 0.75rem; color: var(--text-muted); }
+        iframe { flex: 1; border: none; width: 100%; background: #fff; }
+
+        .terminal-box { height: 180px; background: #05070a; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; font-family: 'Fira Code', monospace; }
+        .term-header { padding: 4px 10px; font-size: 0.7rem; color: var(--text-muted); background: var(--sidebar-bg); border-bottom: 1px solid var(--border-color); }
+        .term-logs { flex: 1; padding: 8px; color: var(--accent-green); font-size: 0.75rem; overflow-y: auto; white-space: pre-wrap; }
+        .term-input-line { display: flex; padding: 4px 8px; background: #05070a; border-top: 1px solid var(--border-color); }
+        .term-input-line span { color: var(--accent-orange); font-size: 0.75rem; margin-right: 6px; }
+        .term-input-line input { flex: 1; background: transparent; border: none; color: #fff; font-size: 0.75rem; outline: none; }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="brand"><div class="logo">R</div> Replit Ultra Studio</div>
-        <div style="display: flex; gap: 6px;">
-            <button class="btn btn-run" onclick="runCode()">▶ Run</button>
-            <button class="btn btn-fix" onclick="autoFixCode()">⚡ Auto-Fix Code</button>
+        <div class="logo-box">
+            <div class="replit-logo">R</div>
+            <span>Replit Workspace</span>
         </div>
+        <button class="run-btn" onclick="runApp()">▶ Run</button>
     </header>
 
     <div class="workspace">
+        <!-- Sidebar Explorer -->
         <div class="sidebar">
-            <label style="font-size: 0.7rem; color: #8C96A8;">PROJECT NAME</label>
-            <input type="text" id="proj-name" value="my_app" />
+            <div class="sidebar-title">Files</div>
+            <div class="file-list" id="file-list"></div>
 
-            <label style="font-size: 0.7rem; color: #8C96A8;">BUILD PROMPT (FULL-STACK)</label>
-            <textarea id="prompt-input" placeholder="Loyiha nomini kiritish..."></textarea>
-            
-            <button class="btn btn-fix" onclick="buildProject()">⚡ Build Super App</button>
-
-            <div id="file-tree" style="margin-top: 10px; font-family: 'Fira Code', monospace; font-size: 0.8rem;"></div>
+            <div class="prompt-box">
+                <input type="text" id="proj-name" value="my_app" />
+                <textarea id="prompt-text" placeholder="Prompt kiriting..."></textarea>
+                <button class="build-btn" onclick="buildApp()">⚡ Agent Build</button>
+            </div>
         </div>
 
-        <div class="editor-area">
-            <div id="monaco-container"></div>
+        <!-- Code Editor -->
+        <div class="editor-section">
+            <div class="tabs-header" id="tabs-header"></div>
+            <div id="editor-container"></div>
         </div>
 
-        <div class="right-area">
-            <iframe id="iframe-view"></iframe>
-            <div class="terminal">
-                <div class="term-log" id="term-log">Replit Workstation ready...&#10;$ </div>
-                <div class="term-input">
-                    <span style="color: var(--orange); padding: 0 4px;">$</span>
-                    <input type="text" id="term-cmd" onkeydown="handleTerminal(event)" placeholder="Command..." />
+        <!-- Webview Preview & Terminal -->
+        <div class="right-section">
+            <div class="preview-header">WebView Preview</div>
+            <iframe id="preview-iframe"></iframe>
+
+            <div class="terminal-box">
+                <div class="term-header">Console Terminal</div>
+                <div class="term-logs" id="term-logs">Replit environment loaded successfully.&#10;$ </div>
+                <div class="term-input-line">
+                    <span>$</span>
+                    <input type="text" id="term-input" onkeydown="execCmd(event)" placeholder="Type bash command..." />
                 </div>
             </div>
         </div>
@@ -78,82 +112,112 @@
 
     <script>
         let editor;
-        let files = [];
-        let activeIdx = 0;
+        let projectFiles = [];
+        let activeFileIndex = 0;
 
         require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' }});
         require(['vs/editor/editor.main'], function() {
-            editor = monaco.editor.create(document.getElementById('monaco-container'), {
-                value: "// Replit Engine tayyor...",
+            editor = monaco.editor.create(document.getElementById('editor-container'), {
+                value: "// Replit Editor Ready",
                 language: 'html',
                 theme: 'vs-dark',
                 automaticLayout: true
             });
+
+            // Avtomatik birinchi yuklash
+            buildApp();
         });
 
-        async function buildProject() {
-            const prompt = document.getElementById('prompt-input').value;
+        async function buildApp() {
             const name = document.getElementById('proj-name').value;
-            const term = document.getElementById('term-log');
-
-            term.innerText += "\n⏳ Loyiha yuklanmoqda...\n";
+            const term = document.getElementById('term-logs');
+            term.innerText += "\n⏳ Agent proyektni yig'moqda...\n";
 
             try {
                 const res = await fetch('/agent-build', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ prompt, name })
+                    body: JSON.stringify({ name })
                 });
                 const data = await res.json();
-
                 if(data.files) {
-                    files = data.files;
-                    activeIdx = 0;
-                    renderTree();
-                    term.innerText += "✅ Loyiha yaratildi va render qilindi!\n$ ";
-                    runCode();
+                    projectFiles = data.files;
+                    activeFileIndex = 0;
+                    renderSidebar();
+                    renderTabs();
+                    openFile(0);
+                    runApp();
+                    term.innerText += "✅ Replit Agent loyihani muvaffaqiyatli qurdi!\n$ ";
                 }
             } catch(e) {
-                term.innerText += "❌ Ulashda xatolik!\n$ ";
+                term.innerText += "❌ Server ulanishda xato!\n$ ";
             }
         }
 
-        function renderTree() {
-            const tree = document.getElementById('file-tree');
-            tree.innerHTML = '';
-            files.forEach((f, i) => {
+        function renderSidebar() {
+            const list = document.getElementById('file-list');
+            list.innerHTML = '';
+            projectFiles.forEach((f, i) => {
                 const item = document.createElement('div');
-                item.style.padding = '4px 8px';
-                item.style.cursor = 'pointer';
-                item.style.color = i === activeIdx ? '#FF5722' : '#8C96A8';
-                item.innerText = '📄 ' + f.name;
-                item.onclick = () => {
-                    activeIdx = i;
-                    renderTree();
-                    editor.setValue(files[i].content);
-                };
-                tree.appendChild(item);
+                item.className = `file-item ${i === activeFileIndex ? 'active' : ''}`;
+                item.innerHTML = `📄 ${f.name}`;
+                item.onclick = () => openFile(i);
+                list.appendChild(item);
             });
-            if(files[activeIdx]) editor.setValue(files[activeIdx].content);
         }
 
-        function runCode() {
-            const html = files.find(f => f.name === 'index.html');
-            if(html) {
-                document.getElementById('iframe-view').srcdoc = html.content;
+        function renderTabs() {
+            const tabsHeader = document.getElementById('tabs-header');
+            tabsHeader.innerHTML = '';
+            projectFiles.forEach((f, i) => {
+                const tab = document.createElement('div');
+                tab.className = `tab ${i === activeFileIndex ? 'active' : ''}`;
+                tab.innerText = f.name;
+                tab.onclick = () => openFile(i);
+                tabsHeader.appendChild(tab);
+            });
+        }
+
+        function openFile(index) {
+            activeFileIndex = index;
+            renderSidebar();
+            renderTabs();
+            
+            const file = projectFiles[index];
+            const ext = file.name.split('.').pop();
+            let lang = 'plaintext';
+            if(ext === 'html') lang = 'html';
+            if(ext === 'css') lang = 'css';
+            if(ext === 'js') lang = 'javascript';
+
+            monaco.editor.setModelLanguage(editor.getModel(), lang);
+            editor.setValue(file.content);
+        }
+
+        function runApp() {
+            if(projectFiles.length > 0) {
+                // Hozirgi muharrir matnini faylga saqlash
+                projectFiles[activeFileIndex].content = editor.getValue();
+
+                const htmlFile = projectFiles.find(f => f.name === 'index.html');
+                const cssFile = projectFiles.find(f => f.name === 'style.css');
+                const jsFile = projectFiles.find(f => f.name === 'script.js');
+
+                if(htmlFile) {
+                    let doc = htmlFile.content;
+                    if(cssFile) doc = doc.replace('</head>', `<style>${cssFile.content}</style></head>`);
+                    if(jsFile) doc = doc.replace('</body>', `<script>${jsFile.content}<\/script></body>`);
+                    
+                    document.getElementById('preview-iframe').srcdoc = doc;
+                }
             }
         }
 
-        async function autoFixCode() {
-            const term = document.getElementById('term-log');
-            term.innerText += "\n⚡ Kod avtomatik ravishda tekshirildi va optimallashtirildi!\n$ ";
-        }
-
-        async function handleTerminal(e) {
+        async function execCmd(e) {
             if(e.key === 'Enter') {
-                const input = document.getElementById('term-cmd');
+                const input = document.getElementById('term-input');
                 const cmd = input.value;
-                const term = document.getElementById('term-log');
+                const term = document.getElementById('term-logs');
                 if(!cmd) return;
 
                 term.innerText += cmd + "\n";
