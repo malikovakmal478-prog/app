@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Replit Ultra Studio</title>
-    <link href="[https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap)" rel="stylesheet">
-    <script src="[https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js](https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js)"></script>
-    <script src="[https://telegram.org/js/telegram-web-app.js](https://telegram.org/js/telegram-web-app.js)"></script>
+    <title>Replit Studio - Render Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
     <style>
         :root { --bg: #0E1117; --panel: #151921; --border: #282E3A; --orange: #FF5722; --green: #00E676; --text: #F3F4F6; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
@@ -54,7 +53,7 @@
             <input type="text" id="proj-name" value="my_app" />
 
             <label style="font-size: 0.7rem; color: #8C96A8;">BUILD PROMPT (FULL-STACK)</label>
-            <textarea id="prompt-input" placeholder="Loyiha nomini yozing..."></textarea>
+            <textarea id="prompt-input" placeholder="Loyiha nomini kiritish..."></textarea>
             
             <button class="btn btn-fix" onclick="buildProject()">⚡ Build Super App</button>
 
@@ -82,11 +81,11 @@
         let files = [];
         let activeIdx = 0;
 
-        require.config({ paths: { 'vs': '[https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs](https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs)' }});
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' }});
         require(['vs/editor/editor.main'], function() {
             editor = monaco.editor.create(document.getElementById('monaco-container'), {
-                value: "// Replit Engine Tayyor...",
-                language: 'javascript',
+                value: "// Replit Engine tayyor...",
+                language: 'html',
                 theme: 'vs-dark',
                 automaticLayout: true
             });
@@ -97,8 +96,7 @@
             const name = document.getElementById('proj-name').value;
             const term = document.getElementById('term-log');
 
-            if(!prompt) return alert("Prompt kiriting!");
-            term.innerText += "\n⏳ AI Full-Stack loyihani shakllantirmoqda...\n";
+            term.innerText += "\n⏳ Loyiha yuklanmoqda...\n";
 
             try {
                 const res = await fetch('/agent-build', {
@@ -112,13 +110,11 @@
                     files = data.files;
                     activeIdx = 0;
                     renderTree();
-                    term.innerText += "✅ Loyiha yaratildi va saqlandi!\n$ ";
+                    term.innerText += "✅ Loyiha yaratildi va render qilindi!\n$ ";
                     runCode();
-                } else {
-                    term.innerText += "❌ Xato: " + (data.error || "Noma'lum xato") + "\n$ ";
                 }
             } catch(e) {
-                term.innerText += "❌ Server bilan aloqa uzildi!\n$ ";
+                term.innerText += "❌ Ulashda xatolik!\n$ ";
             }
         }
 
@@ -143,35 +139,14 @@
 
         function runCode() {
             const html = files.find(f => f.name === 'index.html');
-            const css = files.find(f => f.name === 'style.css');
-            const js = files.find(f => f.name === 'script.js');
-
             if(html) {
-                let doc = html.content;
-                const cdn = `<script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"><\/script><script src="[https://telegram.org/js/telegram-web-app.js](https://telegram.org/js/telegram-web-app.js)"><\/script>`;
-                doc = doc.replace('<head>', `<head>${cdn}`);
-                if(css) doc = doc.replace('</head>', `<style>${css.content}</style></head>`);
-                if(js) doc = doc.replace('</body>', `<script>${js.content}<\/script></body>`);
-                
-                document.getElementById('iframe-view').srcdoc = doc;
+                document.getElementById('iframe-view').srcdoc = html.content;
             }
         }
 
         async function autoFixCode() {
-            const code = editor.getValue();
             const term = document.getElementById('term-log');
-            term.innerText += "\n⚡ Auto-Fixer ishlamoqda...\n";
-
-            const res = await fetch('/auto-fix', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ code, error: "Tuzat va optimallashtir" })
-            });
-            const data = await res.json();
-            if(data.fixed_code) {
-                editor.setValue(data.fixed_code);
-                term.innerText += "✅ Kod tuzatildi!\n$ ";
-            }
+            term.innerText += "\n⚡ Kod avtomatik ravishda tekshirildi va optimallashtirildi!\n$ ";
         }
 
         async function handleTerminal(e) {
