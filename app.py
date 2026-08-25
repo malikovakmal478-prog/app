@@ -1,33 +1,65 @@
 import os
-import sys
 import io
+import sys
 import contextlib
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
+import google.generativeai as genai
 
 app = Flask(__name__, template_folder='.', static_folder='.')
 CORS(app)
 
+# AI Modelini sozlash
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+
 @app.route('/')
 def index():
-    # GitHub Pages yoki Render orqali index.html faylini ko'rsatish
     if os.path.exists("index.html"):
         with open("index.html", "r", encoding="utf-8") as f:
             return f.read()
-    return "<h1>Mini Replit Server Active!</h1>"
+    return "<h1>Pro AI IDE Server Active!</h1>"
+
+@app.route('/generate-bot', methods=['POST'])
+def generate_bot():
+    data = request.get_json()
+    prompt = data.get('prompt', '')
+    token = data.get('token', '')
+
+    if not GEMINI_API_KEY:
+        return jsonify({"error": "Serverda GEMINI_API_KEY sozlanmagan!"}), 400
+
+    system_instruction = f"""
+    Siz professional Python Telegram Bot dasturchisisiz. 
+    Foydalanuvchi so'ragan botni `pyTelegramBotAPI` (telebot) kutubxonasidan foydalanib yozing.
+    Bot Tokeni: '{token}' bo'lsin.
+    Faqatgina toza Python kodini qaytaring. Kod ichida tushuntirishlar yozmang, faqat kod bo'lsin.
+    """
+
+    try:
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        response = model.generate_content(f"{system_instruction}\n\nFoydalanuvchi talabi: {prompt}")
+        
+        generated_code = response.text.replace("```python", "").replace("```", "").strip()
+        
+        return jsonify({
+            "code": generated_code,
+            "filename": "main.py"
+        })
+    except Exception as e:
+        return jsonify({"error": f"AI Xatoligi: {str(e)}"}), 500
 
 @app.route('/run-python', methods=['POST'])
 def run_python():
     data = request.get_json()
     code = data.get('code', '')
 
-    # Python kod natijasini va xatolarini ushlab olish
     output_buffer = io.StringIO()
     error_message = None
 
     try:
         with contextlib.redirect_stdout(output_buffer):
-            # Kodni bajarish
             exec_globals = {}
             exec(code, exec_globals)
         result = output_buffer.getvalue()
