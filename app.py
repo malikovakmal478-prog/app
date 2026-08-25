@@ -1,6 +1,7 @@
 import os
 import io
 import sys
+import threading
 import contextlib
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
@@ -13,6 +14,9 @@ CORS(app)
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
+
+# Botlarni orqa fonda yuritish uchun lug'at
+running_bots = {}
 
 @app.route('/')
 def index():
@@ -35,6 +39,7 @@ def generate_bot():
     Foydalanuvchi so'ragan botni `pyTelegramBotAPI` (telebot) kutubxonasidan foydalanib yozing.
     Bot Tokeni: '{token}' bo'lsin.
     Faqatgina toza Python kodini qaytaring. Kod ichida tushuntirishlar yozmang, faqat kod bo'lsin.
+    Kodingiz oxirida albatta `bot.infinity_polling()` bo'lsin.
     """
 
     try:
@@ -50,27 +55,32 @@ def generate_bot():
     except Exception as e:
         return jsonify({"error": f"AI Xatoligi: {str(e)}"}), 500
 
+def execute_code_in_background(code):
+    try:
+        exec_globals = {}
+        exec(code, exec_globals)
+    except Exception as e:
+        print(f"Bot background error: {e}")
+
 @app.route('/run-python', methods=['POST'])
 def run_python():
     data = request.get_json()
     code = data.get('code', '')
 
-    output_buffer = io.StringIO()
-    error_message = None
-
     try:
-        with contextlib.redirect_stdout(output_buffer):
-            exec_globals = {}
-            exec(code, exec_globals)
-        result = output_buffer.getvalue()
-    except Exception as e:
-        result = output_buffer.getvalue()
-        error_message = f"{type(e).__name__}: {str(e)}"
+        # Botni orqa fonda (Thread) ishga tushiramiz, shunda HTTP timeout bo'lmaydi
+        bot_thread = threading.Thread(target=execute_code_in_background, args=(code,), daemon=True)
+        bot_thread.start()
 
-    return jsonify({
-        "output": result,
-        "error": error_message
-    })
+        return jsonify({
+            "output": "🚀 Bot orqa fonda 24/7 rejimda muvaffaqiyatli ishga tushirildi!",
+            "error": None
+        })
+    except Exception as e:
+        return jsonify({
+            "output": "",
+            "error": f"Ishga tushirishda xatolik: {str(e)}"
+        })
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
