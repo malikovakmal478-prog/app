@@ -44,34 +44,26 @@ def agent_build():
     project_name = data.get('name', 'default_project')
     
     if not GEMINI_API_KEY:
-        return jsonify({"error": "GEMINI_API_KEY sozlanmagan!"}), 400
+        return jsonify({"error": "GEMINI_API_KEY Render Environment Variables ga qo'shilmagan!"}), 400
 
     system_prompt = f"""
-    Siz Replit Agent-siz. Telegram Mini App uchun to'liq HTML, CSS, JS kodlarini tayyorlang.
-    Loyiha nomi: {project_name}
-
-    FAQAT quyidagi JSON formatida javob bering (hech qanday ortiqcha matnsiz):
-    {{
-      "files": [
-        {{"name": "index.html", "content": "..."}},
-        {{"name": "style.css", "content": "..."}},
-        {{"name": "script.js", "content": "..."}}
-      ]
-    }}
+    You are a fast web builder. Generate a fully functional single-page Telegram Mini App (HTML+JS+Tailwind) based on prompt.
+    Return ONLY pure JSON string in this exact schema without markdown wrap:
+    {{"files": [{{"name": "index.html", "content": "THE_HTML_CODE_HERE"}}]}}
     """
 
     try:
         model = genai.GenerativeModel('gemini-2.5-flash')
-        response = model.generate_content(f"{system_prompt}\n\nTalab: {prompt}")
+        response = model.generate_content(
+            f"{system_prompt}\n\nUser Request: {prompt}",
+            generation_config={"temperature": 0.2}
+        )
         
         raw_text = response.text.strip()
-        if raw_text.startswith("```json"):
-            raw_text = raw_text[7:]
-        if raw_text.startswith("```"):
-            raw_text = raw_text[3:]
-        if raw_text.endswith("```"):
-            raw_text = raw_text[:-3]
-        raw_text = raw_text.strip()
+        if "```json" in raw_text:
+            raw_text = raw_text.split("```json")[1].split("```")[0].strip()
+        elif "```" in raw_text:
+            raw_text = raw_text.split("```")[1].split("```")[0].strip()
 
         result = json.loads(raw_text)
 
@@ -89,18 +81,17 @@ def agent_build():
 @app.route('/auto-fix', methods=['POST'])
 def auto_fix():
     data = request.get_json() or {}
-    error_msg = data.get('error', '')
     current_code = data.get('code', '')
 
     if not GEMINI_API_KEY:
         return jsonify({"error": "API Key yo'q!"}), 400
 
-    prompt = f"Ushbu koddagi xatolikni avtomatik tuzat va FAQAT to'g'rilangan kodni qaytar:\n\nXato: {error_msg}\n\nKod:\n{current_code}"
+    prompt = f"Fix syntax errors, bugs, and optimize this HTML/JS code. Output ONLY fixed code:\n\n{current_code}"
     
     try:
         model = genai.GenerativeModel('gemini-2.5-flash')
         res = model.generate_content(prompt)
-        fixed_code = res.text.replace("```javascript", "").replace("```python", "").replace("```html", "").replace("```", "").strip()
+        fixed_code = res.text.replace("```html", "").replace("```javascript", "").replace("```", "").strip()
         return jsonify({"fixed_code": fixed_code})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -112,10 +103,8 @@ def run_terminal():
     try:
         output = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT, timeout=10)
         return jsonify({"output": output.decode('utf-8')})
-    except subprocess.CalledProcessError as e:
-        return jsonify({"output": e.output.decode('utf-8')})
     except Exception as e:
-        return jsonify({"output": f"Terminal Xato: {str(e)}"})
+        return jsonify({"output": f"Terminal Error: {str(e)}"})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
