@@ -3,59 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Bot & Mini App Platform</title>
+    <title>AI Bot Builder & Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
-<body class="bg-gray-100 text-gray-800 font-sans min-h-screen p-6">
-    <div class="max-w-xl mx-auto bg-white p-6 rounded-2xl shadow-xl mt-6 border">
+<body class="bg-[#0e1117] text-gray-100 font-sans min-h-screen flex flex-col">
+
+    <!-- Navbar Header -->
+    <header class="border-b border-gray-800 bg-[#141824] px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-tr from-orange-500 to-red-600 p-2 rounded-xl text-white font-bold">
+                <i class="fa-solid fa-code text-xl"></i>
+            </div>
+            <span class="text-xl font-extrabold tracking-tight">BotStudio <span class="text-orange-500">AI</span></span>
+        </div>
+        <div id="auth-section">
+            <button onclick="mockGoogleLogin()" class="bg-gray-800 hover:bg-gray-700 text-sm font-semibold px-4 py-2 rounded-lg border border-gray-700 flex items-center gap-2 transition">
+                <i class="fa-brands fa-google text-red-500"></i> Google bilan kirish
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Hero Section (Replit Uslubida) -->
+    <main class="flex-1 max-w-4xl mx-auto w-full px-6 py-12 flex flex-col items-center justify-center text-center">
         
-        <!-- Google Login Bo'limi -->
-        <div class="flex items-center justify-between border-b pb-4 mb-4">
-            <div class="flex items-center gap-2">
-                <i class="fa-solid fa-robot text-red-500 text-2xl"></i>
-                <h2 class="text-xl font-bold">BotStudio SaaS</h2>
+        <h1 class="text-4xl md:text-6xl font-black tracking-tight mb-4">
+            What will you <span class="bg-gradient-to-r from-orange-400 via-red-500 to-purple-500 bg-clip-text text-transparent">build today?</span>
+        </h1>
+        <p class="text-gray-400 text-sm md:text-base max-w-xl mb-8">
+            Har qanday murakkablikdagi Telegram bot yoki Mini App yarating. G'oyani yozing va Bot Tokenni kiriting — AI platforma botingizni soniyalar ichida ishga tushiradi.
+        </p>
+
+        <!-- Prompt Prompt Input Box -->
+        <div class="w-full bg-[#1c2333] border border-gray-700 rounded-2xl p-4 shadow-2xl text-left focus-within:border-orange-500 transition">
+            
+            <div class="mb-3">
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">1. Telegram Bot Token:</label>
+                <input type="text" id="bot-token" placeholder="123456789:AAG..." class="w-full bg-[#0e1117] border border-gray-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-orange-500">
             </div>
-            <div id="g_id_onload"
-                 data-client_id="1083921029301-example.apps.googleusercontent.com"
-                 data-callback="handleCredentialResponse">
+
+            <div class="mb-3">
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">2. Bot va Mini App G'oyasi:</label>
+                <textarea id="bot-prompt" rows="3" placeholder="Masalan: TikTok videolar ko'rsatuvchi Mini App bot yoki to'lov tizimiga ega e-commerce bot yaratib ber..." class="w-full bg-[#0e1117] border border-gray-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-orange-500 resize-none"></textarea>
             </div>
-            <div class="g_id_signin" data-type="standard" id="google-btn"></div>
-            <div id="user-info" class="hidden text-xs font-bold text-green-600"></div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-gray-800">
+                <div class="flex gap-2 text-xs text-gray-400">
+                    <span class="bg-gray-800 px-2.5 py-1 rounded-md">⚡ Fast Generation</span>
+                    <span class="bg-gray-800 px-2.5 py-1 rounded-md">📱 Mini App & Buttons</span>
+                </div>
+                <button onclick="deployBot()" id="deploy-btn" class="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold px-6 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> Ishga tushirish
+                </button>
+            </div>
         </div>
 
-        <p class="text-xs text-gray-500 text-center mb-6">Bot Token va g'oyangizni kiriting — AI unga alohida Mini App yaratib, bazaga saqlaydi va ishga tushiradi.</p>
-        
-        <div class="space-y-4">
-            <div>
-                <label class="block text-xs font-bold uppercase mb-1 text-gray-700">Telegram Bot Token:</label>
-                <input type="text" id="bot-token" class="w-full px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-red-400 text-sm" placeholder="123456789:ABCdefGhIJKlmNo...">
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold uppercase mb-1 text-gray-700">Bot G'oyasi:</label>
-                <textarea id="bot-prompt" rows="3" class="w-full px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-red-400 text-sm" placeholder="Masalan: Tik-Tok uslubidagi videolar bor Mini App bot yaratib ber..."></textarea>
-            </div>
-
-            <button onclick="deployBot()" id="deploy-btn" class="w-full bg-red-500 text-white font-bold py-3 rounded-xl hover:bg-red-600 transition flex items-center justify-center gap-2">
-                <i class="fa-solid fa-rocket"></i> Botni Yaratish va Ishga Tushirish
+        <!-- Quick Presets / Shablonlar -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 w-full mt-6">
+            <button onclick="setPrompt('E-commerce Mini App bot mahsulotlar katalogi bilan')" class="bg-[#141824] hover:bg-[#1c2333] border border-gray-800 p-3 rounded-xl text-xs text-gray-300 transition text-center">
+                🛒 E-Commerce App
+            </button>
+            <button onclick="setPrompt('TikTok uslubidagi video tomosha qilish Mini App boti')" class="bg-[#141824] hover:bg-[#1c2333] border border-gray-800 p-3 rounded-xl text-xs text-gray-300 transition text-center">
+                🎬 TikTok Feed
+            </button>
+            <button onclick="setPrompt('Inline tugmali buyurtma qabul qilish va CRM bot')" class="bg-[#141824] hover:bg-[#1c2333] border border-gray-800 p-3 rounded-xl text-xs text-gray-300 transition text-center">
+                📦 Interactive Bot
+            </button>
+            <button onclick="setPrompt('Click va Payme tolov tizimi integratsiya qilingan bot')" class="bg-[#141824] hover:bg-[#1c2333] border border-gray-800 p-3 rounded-xl text-xs text-gray-300 transition text-center">
+                💳 Payment Bot
             </button>
         </div>
 
-        <div id="status-box" class="hidden mt-4 p-3 rounded-xl text-center text-sm font-medium"></div>
-    </div>
+        <!-- Status Output Box -->
+        <div id="status-box" class="hidden w-full mt-6 p-4 rounded-xl border text-sm text-center"></div>
+
+    </main>
 
     <script>
-        let currentUserEmail = "anonymous";
+        let currentUser = null;
 
-        function handleCredentialResponse(response) {
-            const responsePayload = JSON.parse(atob(response.credential.split('.')[1]));
-            currentUserEmail = responsePayload.email;
-            document.getElementById('google-btn').classList.add('hidden');
-            const userInfo = document.getElementById('user-info');
-            userInfo.classList.remove('hidden');
-            userInfo.innerText = "✓ " + currentUserEmail;
+        function setPrompt(text) {
+            document.getElementById('bot-prompt').value = text;
+        }
+
+        function mockGoogleLogin() {
+            currentUser = "malikovakmal478@gmail.com";
+            const authSec = document.getElementById('auth-section');
+            authSec.innerHTML = `<div class="bg-gray-800 border border-green-500/40 text-green-400 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-2"><i class="fa-solid fa-circle-check"></i> ${currentUser}</div>`;
         }
 
         async function deployBot() {
@@ -68,28 +102,28 @@
                 return;
             }
 
-            statusBox.className = "mt-4 p-3 rounded-xl text-center text-sm font-medium bg-blue-100 text-blue-700";
+            statusBox.className = "w-full mt-6 p-4 rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-400 text-sm text-center";
             statusBox.classList.remove('hidden');
-            statusBox.innerText = "AI shaxsiy Mini App kodingizni yaratmoqda va bazaga saqlamoqda...";
+            statusBox.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> AI professional bot va kodingizni yaratmoqda...`;
 
             try {
                 const res = await fetch('https://mini-replit.onrender.com/deploy-bot', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token, prompt, email: currentUserEmail })
+                    body: JSON.stringify({ token, prompt, email: currentUser || "anonymous" })
                 });
 
                 const data = await res.json();
 
                 if (data.error) {
-                    statusBox.className = "mt-4 p-3 rounded-xl text-center text-sm font-medium bg-red-100 text-red-700";
+                    statusBox.className = "w-full mt-6 p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-sm text-center";
                     statusBox.innerText = "Xatolik: " + data.error;
                 } else {
-                    statusBox.className = "mt-4 p-3 rounded-xl text-center text-sm font-medium bg-green-100 text-green-700";
-                    statusBox.innerHTML = `🚀 Bot ishga tushdi!<br><small>Mini App manzili: ${data.app_url}</small>`;
+                    statusBox.className = "w-full mt-6 p-4 rounded-xl border border-green-500/30 bg-green-500/10 text-green-400 text-sm text-center";
+                    statusBox.innerHTML = `🚀 Bot va Mini App faollashtirildi!<br><span class="text-xs text-gray-300">Shaxsiy Mini App manzili: ${data.app_url}</span>`;
                 }
             } catch (err) {
-                statusBox.className = "mt-4 p-3 rounded-xl text-center text-sm font-medium bg-red-100 text-red-700";
+                statusBox.className = "w-full mt-6 p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-sm text-center";
                 statusBox.innerText = "Server bilan bog'lanishda xatolik yuz berdi.";
             }
         }
