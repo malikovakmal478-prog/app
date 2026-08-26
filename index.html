@@ -1,236 +1,190 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Replit IDE Studio</title>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
+    <title>AI Mini App Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --bg-dark: #0e1117;
-            --sidebar-bg: #151921;
-            --border-color: #2b3245;
-            --accent-orange: #f26207;
-            --accent-green: #00d67d;
-            --text-main: #f3f4f6;
-            --text-muted: #8c96a8;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg-dark); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-
-        /* Replit Header */
-        header { height: 44px; background: var(--sidebar-bg); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; padding: 0 12px; }
-        .logo-box { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.9rem; }
-        .replit-logo { width: 20px; height: 20px; background: var(--accent-orange); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 11px; }
-
-        .run-btn { background: var(--accent-green); color: #000; border: none; padding: 5px 16px; border-radius: 4px; font-weight: 600; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-        .run-btn:hover { opacity: 0.9; }
-
-        /* Replit Workspace Layout */
-        .workspace { flex: 1; display: flex; height: calc(100vh - 44px); }
-
-        /* Left File Explorer Panel */
-        .sidebar { width: 240px; background: var(--sidebar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
-        .sidebar-title { padding: 10px 12px; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--border-color); }
-        .file-list { flex: 1; padding: 8px; list-style: none; font-family: 'Fira Code', monospace; font-size: 0.8rem; }
-        .file-item { padding: 6px 8px; border-radius: 4px; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
-        .file-item:hover, .file-item.active { background: #1e2430; color: #fff; }
-
-        /* Agent Prompt Panel */
-        .prompt-box { padding: 10px; border-top: 1px solid var(--border-color); background: var(--sidebar-bg); }
-        .prompt-box input, .prompt-box textarea { width: 100%; background: var(--bg-dark); border: 1px solid var(--border-color); color: #fff; border-radius: 4px; padding: 6px; font-size: 0.75rem; margin-bottom: 6px; outline: none; }
-        .prompt-box textarea { height: 60px; resize: none; }
-        .build-btn { width: 100%; background: var(--accent-orange); color: #fff; border: none; padding: 6px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
-
-        /* Middle Editor Section */
-        .editor-section { flex: 1; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); }
-        .tabs-header { height: 35px; background: var(--sidebar-bg); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; }
-        .tab { padding: 0 14px; height: 100%; display: flex; align-items: center; border-right: 1px solid var(--border-color); font-size: 0.8rem; font-family: 'Fira Code', monospace; color: var(--text-muted); cursor: pointer; background: var(--sidebar-bg); }
-        .tab.active { background: var(--bg-dark); color: #fff; border-top: 2px solid var(--accent-orange); }
-
-        #editor-container { flex: 1; width: 100%; }
-
-        /* Right Panel: Webview Preview & Console Terminal */
-        .right-section { width: 45%; display: flex; flex-direction: column; background: #fff; }
-        .preview-header { height: 35px; background: var(--sidebar-bg); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; padding: 0 10px; font-size: 0.75rem; color: var(--text-muted); }
-        iframe { flex: 1; border: none; width: 100%; background: #fff; }
-
-        .terminal-box { height: 180px; background: #05070a; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; font-family: 'Fira Code', monospace; }
-        .term-header { padding: 4px 10px; font-size: 0.7rem; color: var(--text-muted); background: var(--sidebar-bg); border-bottom: 1px solid var(--border-color); }
-        .term-logs { flex: 1; padding: 8px; color: var(--accent-green); font-size: 0.75rem; overflow-y: auto; white-space: pre-wrap; }
-        .term-input-line { display: flex; padding: 4px 8px; background: #05070a; border-top: 1px solid var(--border-color); }
-        .term-input-line span { color: var(--accent-orange); font-size: 0.75rem; margin-right: 6px; }
-        .term-input-line input { flex: 1; background: transparent; border: none; color: #fff; font-size: 0.75rem; outline: none; }
+        .gradient-bg { background: linear-gradient(135deg, #FFF5F2 0%, #FFFFFF 100%); }
     </style>
 </head>
-<body>
+<body class="bg-gray-50 text-gray-800 font-sans flex h-screen overflow-hidden">
 
-    <header>
-        <div class="logo-box">
-            <div class="replit-logo">R</div>
-            <span>Replit Workspace</span>
-        </div>
-        <button class="run-btn" onclick="runApp()">▶ Run</button>
-    </header>
-
-    <div class="workspace">
-        <!-- Sidebar Explorer -->
-        <div class="sidebar">
-            <div class="sidebar-title">Files</div>
-            <div class="file-list" id="file-list"></div>
-
-            <div class="prompt-box">
-                <input type="text" id="proj-name" value="my_app" />
-                <textarea id="prompt-text" placeholder="Prompt kiriting..."></textarea>
-                <button class="build-btn" onclick="buildApp()">⚡ Agent Build</button>
+    <!-- CHAP PANEL (SIDEBAR) -->
+    <aside class="w-64 bg-white border-r border-gray-200 flex flex-col justify-between p-4">
+        <div>
+            <!-- Logo -->
+            <div class="flex items-center space-x-2 mb-6 cursor-pointer" onclick="resetForm()">
+                <i class="fa-solid fa-cube text-red-500 text-2xl"></i>
+                <span class="font-bold text-xl tracking-wide">Studio</span>
             </div>
-        </div>
 
-        <!-- Code Editor -->
-        <div class="editor-section">
-            <div class="tabs-header" id="tabs-header"></div>
-            <div id="editor-container"></div>
-        </div>
+            <!-- Workspace Menu -->
+            <button onclick="switchTab('workspace')" class="w-full flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg text-sm font-medium mb-4">
+                <span class="flex items-center gap-2"><i class="fa-regular fa-user"></i> Personal Workspace</span>
+                <i class="fa-solid fa-chevron-down text-xs text-gray-400"></i>
+            </button>
 
-        <!-- Webview Preview & Terminal -->
-        <div class="right-section">
-            <div class="preview-header">WebView Preview</div>
-            <iframe id="preview-iframe"></iframe>
+            <!-- Navigatsiya Tugmalari -->
+            <nav class="space-y-1">
+                <button onclick="createNewProject()" class="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
+                    <i class="fa-solid fa-plus text-gray-500"></i> New Project
+                </button>
+                <button onclick="switchTab('projects')" class="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
+                    <i class="fa-regular fa-folder text-gray-500"></i> Projects
+                </button>
+                <button onclick="alert('Kutubxona bo\'limi tez orada qo\'shiladi!')" class="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
+                    <i class="fa-regular fa-bookmark text-gray-500"></i> Library
+                </button>
+            </nav>
 
-            <div class="terminal-box">
-                <div class="term-header">Console Terminal</div>
-                <div class="term-logs" id="term-logs">Replit environment loaded successfully.&#10;$ </div>
-                <div class="term-input-line">
-                    <span>$</span>
-                    <input type="text" id="term-input" onkeydown="execCmd(event)" placeholder="Type bash command..." />
+            <!-- Shablonlar (Template Chips) -->
+            <div class="mt-8">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Shablonlar</p>
+                <div class="space-y-2">
+                    <button onclick="setPrompt('Website: Telegram Mini App uchun zamonaviy landing page yarating')" class="w-full text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium text-gray-700 flex items-center gap-2">
+                        <i class="fa-solid fa-globe"></i> Website
+                    </button>
+                    <button onclick="setPrompt('Mobile App: Clicker tap-to-earn o\'yini Telegram Mini App')" class="w-full text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium text-gray-700 flex items-center gap-2">
+                        <i class="fa-solid fa-mobile-screen"></i> Mobile App
+                    </button>
                 </div>
             </div>
         </div>
-    </div>
 
+        <!-- Profil & Sozlamalar -->
+        <div class="border-t pt-4">
+            <button onclick="alert('API Kalit sozlamalari Render panelida o\'rnatilgan!')" class="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg">
+                <i class="fa-solid fa-gear text-gray-500"></i> Settings
+            </button>
+        </div>
+    </aside>
+
+    <!-- ASOSIY ISH MAYDONI (MAIN CONTENT) -->
+    <main class="flex-1 gradient-bg flex flex-col justify-between p-8 relative overflow-y-auto">
+        
+        <!-- Yuqori qism (Header Title) -->
+        <div class="max-w-3xl mx-auto w-full text-center mt-12">
+            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight mb-2" id="main-title">
+                Bugun qanday Mini App yaratamiz?
+            </h1>
+            <p class="text-gray-500 text-sm">G'oyangizni yozing — AI Agent avtomatik kodini yozib beradi.</p>
+        </div>
+
+        <!-- Prompt Kiritish Maydoni -->
+        <div class="max-w-3xl mx-auto w-full my-auto">
+            <div class="bg-white border border-gray-200 shadow-xl rounded-2xl p-4 transition-all focus-within:ring-2 focus-within:ring-red-400">
+                <textarea id="prompt-input" rows="3" class="w-full resize-none border-none outline-none text-gray-700 placeholder-gray-400 text-sm" placeholder="Masalan: Menga Telegram uchun video ko'radigan Grender nomli mini app yaratib ber..."></textarea>
+                
+                <div class="flex items-center justify-between border-t pt-3 mt-2">
+                    <div class="flex gap-2">
+                        <button onclick="setPrompt('Telegram Internet do\'kon Mini App kartalari va to\'lov tugmasi bilan')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 rounded-full">
+                            🛒 E-Commerce App
+                        </button>
+                        <button onclick="setPrompt('Telegram Tap-to-Earn clicker o\'yini balansi va energiyasi bilan')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 rounded-full">
+                            🎮 Tap-to-Earn Game
+                        </button>
+                    </div>
+
+                    <!-- BUILD TUGMASI -->
+                    <button onclick="generateApp()" id="build-btn" class="bg-red-500 hover:bg-red-600 text-white font-medium text-sm px-5 py-2 rounded-xl flex items-center gap-2 transition-all shadow-md">
+                        <i class="fa-solid fa-bolt"></i> ⚡ Agent Build
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Yuklanish Holati (Loading Spinner) -->
+            <div id="loading" class="hidden text-center mt-6">
+                <i class="fa-solid fa-circle-notch fa-spin text-red-500 text-3xl"></i>
+                <p class="text-sm font-medium text-gray-600 mt-2">AI Agent fayllarni yaratmoqda, kutib turing...</p>
+            </div>
+        </div>
+
+        <!-- O'NG TARAFI: NATIJA (PREVIEW MODAL OYNASI) -->
+        <div id="preview-container" class="hidden fixed inset-4 bg-white shadow-2xl rounded-2xl border border-gray-300 z-50 flex flex-col">
+            <div class="bg-gray-100 px-4 py-3 border-b flex items-center justify-between rounded-t-2xl">
+                <span class="font-semibold text-sm text-gray-700 flex items-center gap-2">
+                    <i class="fa-solid fa-play text-green-500"></i> Mini App Live Preview
+                </span>
+                <button onclick="closePreview()" class="text-gray-400 hover:text-gray-600 font-bold px-2 text-lg">✕</button>
+            </div>
+            <iframe id="app-frame" class="w-full flex-1 border-none rounded-b-2xl"></iframe>
+        </div>
+
+        <footer class="text-center text-xs text-gray-400">
+            Powered by AI Agent & Render Engine
+        </footer>
+    </main>
+
+    <!-- JAVASCRIPT: BARCHA TUGMALAR VA AI INTEGRATSIYASI -->
     <script>
-        let editor;
-        let projectFiles = [];
-        let activeFileIndex = 0;
+        // Prompt matnini tayyor tugmalardan kiritish
+        function setPrompt(text) {
+            document.getElementById('prompt-input').value = text;
+        }
 
-        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' }});
-        require(['vs/editor/editor.main'], function() {
-            editor = monaco.editor.create(document.getElementById('editor-container'), {
-                value: "// Replit Editor Ready",
-                language: 'html',
-                theme: 'vs-dark',
-                automaticLayout: true
-            });
+        // Yangi proyekt boshlash
+        function resetForm() {
+            document.getElementById('prompt-input').value = '';
+            document.getElementById('preview-container').classList.add('hidden');
+        }
 
-            // Avtomatik birinchi yuklash
-            buildApp();
-        });
+        function createNewProject() {
+            resetForm();
+            alert("Yangi loyiha tayyor. Promp kiritib '⚡ Agent Build' tugmasini bosing.");
+        }
 
-        async function buildApp() {
-            const name = document.getElementById('proj-name').value;
-            const term = document.getElementById('term-logs');
-            term.innerText += "\n⏳ Agent proyektni yig'moqda...\n";
+        function switchTab(tabName) {
+            alert(tabName.toUpperCase() + " bo'limiga o'tildi.");
+        }
+
+        // Preview oynasini yopish
+        function closePreview() {
+            document.getElementById('preview-container').classList.add('hidden');
+        }
+
+        // AI KOD GENERATSIYA FUNKSIYASI (BACKEND HARAKATI)
+        async function generateApp() {
+            const promptText = document.getElementById('prompt-input').value.trim();
+            if (!promptText) {
+                alert("Iltimos, avval Mini App g'oyangizni yozing!");
+                return;
+            }
+
+            const buildBtn = document.getElementById('build-btn');
+            const loading = document.getElementById('loading');
+            
+            buildBtn.disabled = true;
+            buildBtn.classList.add('opacity-50');
+            loading.classList.remove('hidden');
 
             try {
-                const res = await fetch('/agent-build', {
+                const response = await fetch('/agent-build', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ name })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: promptText })
                 });
-                const data = await res.json();
-                if(data.files) {
-                    projectFiles = data.files;
-                    activeFileIndex = 0;
-                    renderSidebar();
-                    renderTabs();
-                    openFile(0);
-                    runApp();
-                    term.innerText += "✅ Replit Agent loyihani muvaffaqiyatli qurdi!\n$ ";
-                }
-            } catch(e) {
-                term.innerText += "❌ Server ulanishda xato!\n$ ";
-            }
-        }
 
-        function renderSidebar() {
-            const list = document.getElementById('file-list');
-            list.innerHTML = '';
-            projectFiles.forEach((f, i) => {
-                const item = document.createElement('div');
-                item.className = `file-item ${i === activeFileIndex ? 'active' : ''}`;
-                item.innerHTML = `📄 ${f.name}`;
-                item.onclick = () => openFile(i);
-                list.appendChild(item);
-            });
-        }
+                const data = await response.json();
 
-        function renderTabs() {
-            const tabsHeader = document.getElementById('tabs-header');
-            tabsHeader.innerHTML = '';
-            projectFiles.forEach((f, i) => {
-                const tab = document.createElement('div');
-                tab.className = `tab ${i === activeFileIndex ? 'active' : ''}`;
-                tab.innerText = f.name;
-                tab.onclick = () => openFile(i);
-                tabsHeader.appendChild(tab);
-            });
-        }
-
-        function openFile(index) {
-            activeFileIndex = index;
-            renderSidebar();
-            renderTabs();
-            
-            const file = projectFiles[index];
-            const ext = file.name.split('.').pop();
-            let lang = 'plaintext';
-            if(ext === 'html') lang = 'html';
-            if(ext === 'css') lang = 'css';
-            if(ext === 'js') lang = 'javascript';
-
-            monaco.editor.setModelLanguage(editor.getModel(), lang);
-            editor.setValue(file.content);
-        }
-
-        function runApp() {
-            if(projectFiles.length > 0) {
-                // Hozirgi muharrir matnini faylga saqlash
-                projectFiles[activeFileIndex].content = editor.getValue();
-
-                const htmlFile = projectFiles.find(f => f.name === 'index.html');
-                const cssFile = projectFiles.find(f => f.name === 'style.css');
-                const jsFile = projectFiles.find(f => f.name === 'script.js');
-
-                if(htmlFile) {
-                    let doc = htmlFile.content;
-                    if(cssFile) doc = doc.replace('</head>', `<style>${cssFile.content}</style></head>`);
-                    if(jsFile) doc = doc.replace('</body>', `<script>${jsFile.content}<\/script></body>`);
+                if (data.error) {
+                    alert("Xatolik: " + data.error);
+                } else if (data.files && data.files.length > 0) {
+                    // Yaratilgan HTML kodi olinadi va preview ga joylanadi
+                    const htmlFile = data.files.find(f => f.name.endsWith('.html')) || data.files[0];
+                    const frame = document.getElementById('app-frame');
                     
-                    document.getElementById('preview-iframe').srcdoc = doc;
+                    document.getElementById('preview-container').classList.remove('hidden');
+                    frame.srcdoc = htmlFile.content;
                 }
-            }
-        }
-
-        async function execCmd(e) {
-            if(e.key === 'Enter') {
-                const input = document.getElementById('term-input');
-                const cmd = input.value;
-                const term = document.getElementById('term-logs');
-                if(!cmd) return;
-
-                term.innerText += cmd + "\n";
-                input.value = '';
-
-                const res = await fetch('/run-terminal', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ command: cmd })
-                });
-                const data = await res.json();
-                term.innerText += (data.output || '') + "\n$ ";
-                term.scrollTop = term.scrollHeight;
+            } catch (err) {
+                alert("Server bilan bog'lanishda xatolik yuz berdi!");
+            } finally {
+                buildBtn.disabled = false;
+                buildBtn.classList.remove('opacity-50');
+                loading.classList.add('hidden');
             }
         }
     </script>
