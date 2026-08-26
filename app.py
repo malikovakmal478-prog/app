@@ -8,7 +8,6 @@ import google.generativeai as genai
 app = Flask(__name__, template_folder=".")
 CORS(app)
 
-# Gemini API sozlamasi
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 model = genai.GenerativeModel(
     "gemini-2.5-flash",
@@ -29,16 +28,23 @@ def agent_build():
             return jsonify({'error': 'Prompt kiritilmadi'}), 400
 
         system_prompt = f"""
-        Siz professional Web va Telegram Mini App dasturchisisiz.
-        Foydalanuvchi so'rovi: "{prompt}"
+        Siz professional Telegram Mini App va Web dasturchisisiz.
+        Foydalanuvchi talabi: "{prompt}"
 
-        Ushbu so'rov bo'yicha to'liq ishlaydigan HTML/CSS/JS loyihasini yarating.
+        MUHIM KO'RSATMALAR:
+        1. Standart "Salom Mini Ilova" degan qisqa shablon BERMANG.
+        2. Foydalanuvchi so'rovi bo'yicha to'liq, interaktiv va vizual boy loyiha yarating.
+           - Agar o'yin so'ralsa: Bosiladigan tugmalar, balans hisoblagichi, energiya paneli va animatsiyalar bo'lsin.
+           - Agar do'kon so'ralsa: Mahsulot kartochkalari, savatcha (cart), narxlar va buyurtma berish tugmasi bo'lsin.
+           - Agar media/video so me'yorida so'ralsa: Video pleyer ramkalari, layk tugmalari va izohlar bo'limi bo'lsin.
+        3. Kod TailwindCSS va Telegram WebApp SDK (`https://telegram.org/js/telegram-web-app.js`) bilan birgalikda to'liq ishlashi kerak.
+
         Natijani FAQAT valid JSON formatida qaytaring:
         {{
             "files": [
                 {{
                     "name": "index.html",
-                    "content": "To'liq HTML kodi bu yerda"
+                    "content": "...to'liq, tayyor va mukammal HTML/JS kodi bu yerda..."
                 }}
             ]
         }}
@@ -47,12 +53,10 @@ def agent_build():
         response = model.generate_content(system_prompt)
         text_response = response.text.strip()
 
-        # Markdown belgilari o'chirib tashlanadi
         if text_response.startswith("```"):
             text_response = re.sub(r"^```[a-z]*\n?", "", text_response)
             text_response = re.sub(r"\n?```$", "", text_response)
 
-        # JSON escape xatoliklarini avtomatik to'g'rilash
         try:
             result_json = json.loads(text_response)
         except json.JSONDecodeError:
