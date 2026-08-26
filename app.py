@@ -3,7 +3,7 @@ import json
 import re
 import sqlite3
 import threading
-from flask import Flask, request, jsonify, send_from_html
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from google import genai
 from google.genai import types
@@ -12,7 +12,7 @@ import telebot
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "OPTIONS"], "allow_headers": "*"}})
 
-# Gemini API
+# Gemini API Klienti
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
 # Ma'lumotlar bazasini sozlash (SQLite)
