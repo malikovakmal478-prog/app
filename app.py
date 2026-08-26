@@ -3,16 +3,20 @@ import json
 import re
 import sqlite3
 import threading
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask import Flask, request, jsonify, make_response
 from google import genai
 from google.genai import types
 import telebot
 
 app = Flask(__name__)
 
-# CORS to'liq ochiq
-CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+# Barcha so'rovlar uchun majburiy CORS headers qo'shish
+@app.after_request
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    return response
 
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
@@ -35,8 +39,6 @@ def init_db():
 
 init_db()
 
-ACTIVE_BOTS = {}
-
 def start_telegram_bot(token, bot_type, app_url=""):
     try:
         bot = telebot.TeleBot(token)
@@ -48,28 +50,17 @@ def start_telegram_bot(token, bot_type, app_url=""):
                 web_app = telebot.types.WebAppInfo(url=app_url)
                 button = telebot.types.InlineKeyboardButton(text="📱 Mini App-ni ochish", web_app=web_app)
                 keyboard.add(button)
-                bot.reply_to(message, "Salom! AI tomonidan siz uchun yaratilgan Mini App:", reply_markup=keyboard)
+                bot.reply_to(message, "Salom! AI tomonidan yaratilgan Mini App:", reply_markup=keyboard)
             else:
-                keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-                keyboard.add("ℹ️ Biz haqimizda", "📞 Bog'lanish")
-                keyboard.add("🛍️ Xizmatlar")
-                bot.reply_to(message, "Salom! AI botingiz tayyor va ishlamoqda!", reply_markup=keyboard)
+                bot.reply_to(message, "Salom! AI botingiz ishga tushdi!")
 
         @bot.message_handler(func=lambda message: True)
         def echo_all(message):
-            bot.reply_to(message, f"Javob: {message.text}")
+            bot.reply_to(message, f"Siz yozdingiz: {message.text}")
 
-        ACTIVE_BOTS[token] = bot
         bot.infinity_polling(skip_pending=True)
     except Exception as e:
         print(f"Bot error: {e}")
-
-@app.after_request
-def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-    return response
 
 @app.route('/', methods=['GET'])
 def index():
@@ -89,11 +80,13 @@ def get_mini_app(bot_id):
 
 @app.route('/deploy-bot', methods=['POST', 'OPTIONS'])
 def deploy_bot():
+    # OPTIONS so'rovi (Preflight) uchun darhol OK javob berish
     if request.method == 'OPTIONS':
-        return jsonify({"status": "OK"}), 200
+        response = make_response(jsonify({"status": "OK"}), 200)
+        return response
 
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
         token = data.get('token', '').strip()
         prompt = data.get('prompt', '').strip()
         user_email = data.get('email', 'anonymous')
@@ -105,28 +98,19 @@ def deploy_bot():
         Siz Telegram Bot va Mini App yaratuvchi professional AI dasturchisiz.
         Foydalanuvchi so'rovi: "{prompt}"
 
-        Telegram Mini App (Hamster Kombat, Clicker, E-Commerce, TikTok Feed va hokazo) uchun chiroyli HTML, CSS (Tailwind) va JS kod tayyorlang.
-        FAQAT to'g'ri JSON formatida javob qaytaring:
+        Telegram Mini App (Hamster Kombat, Clicker, E-Commerce va h.k.) uchun tayyor HTML, CSS (Tailwind) va JavaScript kodini kiriting.
+        JSON formatida javob qaytaring:
         {{
             "type": "miniapp",
             "html": "...to'liq HTML kodi..."
         }}
         """
 
-        # Yuqori yuklamadan holi bo'lgan eng barqaror modeldan foydalanamiz
-        try:
-            response = client.models.generate_content(
-                model='gemini-1.5-flash',
-                contents=system_prompt,
-                config=types.GenerateContentConfig(response_mime_type="application/json")
-            )
-        except Exception:
-            # Agar 1.5 band bo'lsa, avtomatik ravishda text modeliga o'tadi
-            response = client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=system_prompt,
-                config=types.GenerateContentConfig(response_mime_type="application/json")
-            )
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=system_prompt,
+            config=types.GenerateContentConfig(response_mime_type="application/json")
+        )
 
         text_response = response.text.strip()
         if text_response.startswith("```"):
@@ -135,7 +119,7 @@ def deploy_bot():
 
         result_json = json.loads(text_response)
         bot_type = result_json.get("type", "miniapp")
-        html_content = result_json.get("html", "<h1>Bot va Mini App tayyor!</h1>")
+        html_content = result_json.get("html", "<h1>Bot tayyor!</h1>")
 
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
@@ -166,7 +150,7 @@ def deploy_bot():
         })
 
     except Exception as e:
-        return jsonify({'error': f"AI model yuklamasi o'ta yuqori, iltimos 5 soniyadan so'ng qayta urinib ko'ring ({str(e)})"}), 500
+        return jsonify({'error': f"Tizim xatosi: {str(e)}"}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
