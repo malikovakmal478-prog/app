@@ -3,7 +3,7 @@ import json
 import re
 import sqlite3
 import threading
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from google import genai
 from google.genai import types
@@ -12,10 +12,8 @@ import telebot
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "OPTIONS"], "allow_headers": "*"}})
 
-# Gemini API Klienti
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
-# Ma'lumotlar bazasini sozlash (SQLite)
 DB_FILE = "platform_database.db"
 
 def init_db():
@@ -48,27 +46,26 @@ def start_telegram_bot(token, bot_type, app_url=""):
                 web_app = telebot.types.WebAppInfo(url=app_url)
                 button = telebot.types.InlineKeyboardButton(text="📱 Mini App-ni ochish", web_app=web_app)
                 keyboard.add(button)
-                bot.reply_to(message, "Salom! Shaxsiy Mini App-ingizni ochish uchun quyidagi tugmani bosing:", reply_markup=keyboard)
+                bot.reply_to(message, "Salom! Shaxsiy AI Mini App'ingiz tayyor:", reply_markup=keyboard)
             else:
                 keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-                keyboard.add("ℹ️ Biz haqimizda", "📞 Bog'lanish")
-                keyboard.add("🛍️ Xizmatlar")
-                bot.reply_to(message, "Salom! AI tomonidan yaratilgan botga xush kelibsiz!", reply_markup=keyboard)
+                keyboard.add("ℹ️ Ma'lumot", "📞 Bog'lanish")
+                keyboard.add("🛍️ Xizmatlar Katalogi")
+                bot.reply_to(message, "Salom! AI BotStudio orqali yaratilgan botga xush kelibsiz!", reply_markup=keyboard)
 
         @bot.message_handler(func=lambda message: True)
         def echo_all(message):
-            bot.reply_to(message, f"Siz yozdingiz: {message.text}")
+            bot.reply_to(message, f"Sizning so'rovingiz qabul qilindi: {message.text}")
 
         ACTIVE_BOTS[token] = bot
         bot.infinity_polling(skip_pending=True)
     except Exception as e:
-        print(f"Bot xatosi: {e}")
+        print(f"Bot error: {e}")
 
 @app.route('/', methods=['GET'])
 def index():
-    return jsonify({"status": "Mukammal AI Platform Engine ishlamoqda"}), 200
+    return jsonify({"status": "AI Platform Engine Active"}), 200
 
-# Dinamik Mini App sahifasini uzatish (Har bir bot uchun alohida)
 @app.route('/app/<int:bot_id>', methods=['GET'])
 def get_mini_app(bot_id):
     conn = sqlite3.connect(DB_FILE)
@@ -96,11 +93,11 @@ def deploy_bot():
             return jsonify({'error': 'Bot Token va Prompt kiritilishi shart!'}), 400
 
         system_prompt = f"""
-        Siz Telegram Bot va Mini App bo'yicha mutaxassissiz.
+        Siz Telegram Bot va Mini App bo'yicha eng kuchli AI dasturchisiz.
         Foydalanuvchi so'rovi: "{prompt}"
 
-        Agar so'rov Mini App bo'lsa, HTML (TailwindCSS va Telegram SDK bilan) kodini yarating.
-        Natijani FAQAT valid JSON formatida qaytaring:
+        Agar so'rov Mini App bo'lsa, chiroyli modern UI (TailwindCSS va Telegram WebApp SDK) bo'lgan HTML tayyorlang.
+        JSON formatida javob bering:
         {{
             "type": "miniapp",
             "html": "...to'liq HTML kodi..."
@@ -122,7 +119,6 @@ def deploy_bot():
         bot_type = result_json.get("type", "buttons")
         html_content = result_json.get("html", "")
 
-        # Bazaga saqlash
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
         cursor.execute('''
@@ -135,11 +131,9 @@ def deploy_bot():
         conn.commit()
         conn.close()
 
-        # Har bir bot uchun unikal Mini App havolasi shakllantiriladi
         server_domain = request.host_url.rstrip('/')
         mini_app_url = f"{server_domain}/app/{bot_id}"
 
-        # Botni fonda ishga tushirish
         bot_thread = threading.Thread(
             target=start_telegram_bot, 
             args=(token, bot_type, mini_app_url)
@@ -149,7 +143,7 @@ def deploy_bot():
 
         return jsonify({
             "status": "success",
-            "message": "Bot yaratildi, bazaga saqlandi va ishga tushirildi!",
+            "message": "Bot yaratildi va ishga tushirildi!",
             "app_url": mini_app_url
         })
 
