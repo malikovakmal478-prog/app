@@ -3,193 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Mini App Builder</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .gradient-bg { background: linear-gradient(135deg, #FFF5F2 0%, #FFFFFF 100%); }
-    </style>
+    <title>AI Bot & Mini App Platform</title>
+    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+    <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css)">
+    <script src="[https://accounts.google.com/gsi/client](https://accounts.google.com/gsi/client)" async defer></script>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans flex h-screen overflow-hidden">
-
-    <!-- CHAP PANEL (SIDEBAR) -->
-    <aside class="w-64 bg-white border-r border-gray-200 flex flex-col justify-between p-4">
-        <div>
-            <!-- Logo -->
-            <div class="flex items-center space-x-2 mb-6 cursor-pointer" onclick="resetForm()">
-                <i class="fa-solid fa-cube text-red-500 text-2xl"></i>
-                <span class="font-bold text-xl tracking-wide">Studio</span>
-            </div>
-
-            <!-- Workspace Menu -->
-            <button onclick="switchTab('workspace')" class="w-full flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg text-sm font-medium mb-4">
-                <span class="flex items-center gap-2"><i class="fa-regular fa-user"></i> Personal Workspace</span>
-                <i class="fa-solid fa-chevron-down text-xs text-gray-400"></i>
-            </button>
-
-            <!-- Navigatsiya Tugmalari -->
-            <nav class="space-y-1">
-                <button onclick="createNewProject()" class="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
-                    <i class="fa-solid fa-plus text-gray-500"></i> New Project
-                </button>
-                <button onclick="switchTab('projects')" class="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
-                    <i class="fa-regular fa-folder text-gray-500"></i> Projects
-                </button>
-                <button onclick="alert('Kutubxona bo\'limi tez orada qo\'shiladi!')" class="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
-                    <i class="fa-regular fa-bookmark text-gray-500"></i> Library
-                </button>
-            </nav>
-
-            <!-- Shablonlar -->
-            <div class="mt-8">
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Shablonlar</p>
-                <div class="space-y-2">
-                    <button onclick="setPrompt('Menga Telegram uchun video ko\'radigan Grender nomli mini app yaratib ber')" class="w-full text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium text-gray-700 flex items-center gap-2">
-                        <i class="fa-solid fa-globe"></i> Website / Media
-                    </button>
-                    <button onclick="setPrompt('Clicker tap-to-earn o\'yini Telegram Mini App balansi va energiyasi bilan')" class="w-full text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium text-gray-700 flex items-center gap-2">
-                        <i class="fa-solid fa-mobile-screen"></i> Mobile App / Game
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Profil & Sozlamalar -->
-        <div class="border-t pt-4">
-            <button onclick="alert('API Kalit sozlamalari Render panelida o\'rnatilgan!')" class="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg">
-                <i class="fa-solid fa-gear text-gray-500"></i> Settings
-            </button>
-        </div>
-    </aside>
-
-    <!-- ASOSIY ISH MAYDONI -->
-    <main class="flex-1 gradient-bg flex flex-col justify-between p-8 relative overflow-y-auto">
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen p-6">
+    <div class="max-w-xl mx-auto bg-white p-6 rounded-2xl shadow-xl mt-6 border">
         
-        <!-- Header -->
-        <div class="max-w-3xl mx-auto w-full text-center mt-12">
-            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight mb-2">
-                Bugun qanday Mini App yaratamiz?
-            </h1>
-            <p class="text-gray-500 text-sm">G'oyangizni yozing — AI Agent avtomatik kodini yozib beradi.</p>
+        <!-- Google Login Bo'limi -->
+        <div class="flex items-center justify-between border-b pb-4 mb-4">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-robot text-red-500 text-2xl"></i>
+                <h2 class="text-xl font-bold">BotStudio SaaS</h2>
+            </div>
+            <div id="g_id_onload"
+                 data-client_id="1083921029301-example.apps.googleusercontent.com"
+                 data-callback="handleCredentialResponse">
+            </div>
+            <div class="g_id_signin" data-type="standard" id="google-btn"></div>
+            <div id="user-info" class="hidden text-xs font-bold text-green-600"></div>
         </div>
 
-        <!-- Prompt Kiritish Maydoni -->
-        <div class="max-w-3xl mx-auto w-full my-auto">
-            <div class="bg-white border border-gray-200 shadow-xl rounded-2xl p-4 transition-all focus-within:ring-2 focus-within:ring-red-400">
-                <textarea id="prompt-input" rows="3" class="w-full resize-none border-none outline-none text-gray-700 placeholder-gray-400 text-sm" placeholder="Masalan: Menga Telegram uchun video ko'radigan Grender nomli mini app yaratib ber..."></textarea>
-                
-                <div class="flex items-center justify-between border-t pt-3 mt-2">
-                    <div class="flex gap-2">
-                        <button onclick="setPrompt('Telegram Internet do\'kon Mini App kartalari va to\'lov tugmasi bilan')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 rounded-full">
-                            🛒 E-Commerce App
-                        </button>
-                        <button onclick="setPrompt('Telegram Tap-to-Earn clicker o\'yini balansi va energiyasi bilan')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 rounded-full">
-                            🎮 Tap-to-Earn Game
-                        </button>
-                    </div>
+        <p class="text-xs text-gray-500 text-center mb-6">Bot Token va g'oyangizni kiriting — AI unga alohida Mini App yaratib, bazaga saqlaydi va ishga tushiradi.</p>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold uppercase mb-1 text-gray-700">Telegram Bot Token:</label>
+                <input type="text" id="bot-token" class="w-full px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-red-400 text-sm" placeholder="123456789:ABCdefGhIJKlmNo...">
+            </div>
 
-                    <!-- BUILD TUGMASI -->
-                    <button onclick="generateApp()" id="build-btn" class="bg-red-500 hover:bg-red-600 text-white font-medium text-sm px-5 py-2 rounded-xl flex items-center gap-2 transition-all shadow-md">
-                        <i class="fa-solid fa-bolt"></i> ⚡ Agent Build
-                    </button>
-                </div>
+            <div>
+                <label class="block text-xs font-bold uppercase mb-1 text-gray-700">Bot G'oyasi:</label>
+                <textarea id="bot-prompt" rows="3" class="w-full px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-red-400 text-sm" placeholder="Masalan: Tik-Tok uslubidagi videolar bor Mini App bot yaratib ber..."></textarea>
             </div>
-            
-            <!-- Loading Spinner -->
-            <div id="loading" class="hidden text-center mt-6">
-                <i class="fa-solid fa-circle-notch fa-spin text-red-500 text-3xl"></i>
-                <p class="text-sm font-medium text-gray-600 mt-2">AI Agent fayllarni yaratmoqda, kutib turing...</p>
-            </div>
+
+            <button onclick="deployBot()" id="deploy-btn" class="w-full bg-red-500 text-white font-bold py-3 rounded-xl hover:bg-red-600 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-rocket"></i> Botni Yaratish va Ishga Tushirish
+            </button>
         </div>
 
-        <!-- PREVIEW MODAL -->
-        <div id="preview-container" class="hidden fixed inset-4 bg-white shadow-2xl rounded-2xl border border-gray-300 z-50 flex flex-col">
-            <div class="bg-gray-100 px-4 py-3 border-b flex items-center justify-between rounded-t-2xl">
-                <span class="font-semibold text-sm text-gray-700 flex items-center gap-2">
-                    <i class="fa-solid fa-play text-green-500"></i> Mini App Live Preview
-                </span>
-                <button onclick="closePreview()" class="text-gray-400 hover:text-gray-600 font-bold px-2 text-lg">✕</button>
-            </div>
-            <iframe id="app-frame" class="w-full flex-1 border-none rounded-b-2xl"></iframe>
-        </div>
+        <div id="status-box" class="hidden mt-4 p-3 rounded-xl text-center text-sm font-medium"></div>
+    </div>
 
-        <footer class="text-center text-xs text-gray-400">
-            Powered by AI Agent & Render Engine
-        </footer>
-    </main>
-
-    <!-- JAVASCRIPT: YANGILANGAN TAIMAUTLI KOD -->
     <script>
-        function setPrompt(text) {
-            document.getElementById('prompt-input').value = text;
+        let currentUserEmail = "anonymous";
+
+        function handleCredentialResponse(response) {
+            const responsePayload = JSON.parse(atob(response.credential.split('.')[1]));
+            currentUserEmail = responsePayload.email;
+            document.getElementById('google-btn').classList.add('hidden');
+            const userInfo = document.getElementById('user-info');
+            userInfo.classList.remove('hidden');
+            userInfo.innerText = "✓ " + currentUserEmail;
         }
 
-        function resetForm() {
-            document.getElementById('prompt-input').value = '';
-            document.getElementById('preview-container').classList.add('hidden');
-        }
+        async function deployBot() {
+            const token = document.getElementById('bot-token').value.trim();
+            const prompt = document.getElementById('bot-prompt').value.trim();
+            const statusBox = document.getElementById('status-box');
 
-        function createNewProject() {
-            resetForm();
-            alert("Yangi loyiha tayyor. Prompt kiritib '⚡ Agent Build' tugmasini bosing.");
-        }
-
-        function switchTab(tabName) {
-            alert(tabName.toUpperCase() + " bo'limiga o'tildi.");
-        }
-
-        function closePreview() {
-            document.getElementById('preview-container').classList.add('hidden');
-        }
-
-        async function generateApp() {
-            const promptText = document.getElementById('prompt-input').value.trim();
-            if (!promptText) {
-                alert("Iltimos, avval Mini App g'oyangizni yozing!");
+            if (!token || !prompt) {
+                alert("Iltimos, Bot Token va Promptni kiriting!");
                 return;
             }
 
-            const buildBtn = document.getElementById('build-btn');
-            const loading = document.getElementById('loading');
-            
-            buildBtn.disabled = true;
-            buildBtn.classList.add('opacity-50');
-            loading.classList.remove('hidden');
-
-            // Timeout funksiyasi (60 soniya kutadi)
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 60000);
+            statusBox.className = "mt-4 p-3 rounded-xl text-center text-sm font-medium bg-blue-100 text-blue-700";
+            statusBox.classList.remove('hidden');
+            statusBox.innerText = "AI shaxsiy Mini App kodingizni yaratmoqda va bazaga saqlamoqda...";
 
             try {
-                const response = await fetch('https://mini-replit.onrender.com/agent-build', {
+                const res = await fetch('[https://mini-replit.onrender.com/deploy-bot](https://mini-replit.onrender.com/deploy-bot)', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: promptText }),
-                    signal: controller.signal
+                    body: JSON.stringify({ token, prompt, email: currentUserEmail })
                 });
-                clearTimeout(timeoutId);
 
-                const data = await response.json();
+                const data = await res.json();
 
                 if (data.error) {
-                    alert("AI Xatosi: " + data.error);
-                } else if (data.files && data.files.length > 0) {
-                    const htmlFile = data.files.find(f => f.name.endsWith('.html')) || data.files[0];
-                    const frame = document.getElementById('app-frame');
-                    
-                    document.getElementById('preview-container').classList.remove('hidden');
-                    frame.srcdoc = htmlFile.content;
+                    statusBox.className = "mt-4 p-3 rounded-xl text-center text-sm font-medium bg-red-100 text-red-700";
+                    statusBox.innerText = "Xatolik: " + data.error;
+                } else {
+                    statusBox.className = "mt-4 p-3 rounded-xl text-center text-sm font-medium bg-green-100 text-green-700";
+                    statusBox.innerHTML = `🚀 Bot ishga tushdi!<br><small>Mini App manzili: ${data.app_url}</small>`;
                 }
             } catch (err) {
-                if (err.name === 'AbortError') {
-                    alert("Render server uxlap qolgan ekan, u uyg'onmoqda! 10 soniyadan keyin qayta 'Agent Build' tugmasini bosing.");
-                } else {
-                    alert("Bog'lanish xatosi! Render backend manzili to'g'riligini tekshiring.");
-                }
-            } finally {
-                buildBtn.disabled = false;
-                buildBtn.classList.remove('opacity-50');
-                loading.classList.add('hidden');
+                statusBox.className = "mt-4 p-3 rounded-xl text-center text-sm font-medium bg-red-100 text-red-700";
+                statusBox.innerText = "Server bilan bog'lanishda xatolik yuz berdi.";
             }
         }
     </script>
