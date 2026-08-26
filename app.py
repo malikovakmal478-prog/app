@@ -1,26 +1,28 @@
 import os
 import json
 import re
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
-app = Flask(__name__, template_folder=".")
-# CORS sozlamasini barcha domenlar uchun ochiq qilish
-CORS(app, resources={r"/*": {"origins": "*"}})
+app = Flask(__name__)
 
-genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-model = genai.GenerativeModel(
-    "gemini-2.5-flash",
-    generation_config={"response_mime_type": "application/json"}
-)
+# CORS sozlamasini barcha manbalar va metodlar uchun to'liq ochish
+CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "OPTIONS"], "allow_headers": "*"}})
 
-@app.route('/')
+# Gemini API Klienti
+client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+
+@app.route('/', methods=['GET'])
 def index():
     return jsonify({"status": "Server ishlamoqda"}), 200
 
-@app.route('/agent-build', methods=['POST'])
+@app.route('/agent-build', methods=['POST', 'OPTIONS'])
 def agent_build():
+    if request.method == 'OPTIONS':
+        return jsonify({"status": "OK"}), 200
+
     try:
         data = request.get_json()
         prompt = data.get('prompt', '')
@@ -34,21 +36,26 @@ def agent_build():
 
         MUHIM KO'RSATMALAR:
         1. Standart "Salom Mini Ilova" degan qisqa shablon BERMANG.
-        2. Foydalanuvchi so'rovi bo'yicha to'liq, interaktiv va vizual boy loyiha yarating.
-        3. Kod TailwindCSS va Telegram WebApp SDK (`https://telegram.org/js/telegram-web-app.js`) bilan birgalikda to'liq ishlashi kerak.
+        2. Foydalanuvchi so'rovi bo'yicha to'liq, interaktiv va vizual boy loyiha yarating (TailwindCSS va Telegram WebApp SDK ishlatilsin).
 
         Natijani FAQAT valid JSON formatida qaytaring:
         {{
             "files": [
                 {{
                     "name": "index.html",
-                    "content": "...to'liq, tayyor va mukammal HTML/JS kodi bu yerda..."
+                    "content": "...to'liq HTML va JS kodi bu yerda..."
                 }}
             ]
         }}
         """
 
-        response = model.generate_content(system_prompt)
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=system_prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json"
+            )
+        )
         text_response = response.text.strip()
 
         if text_response.startswith("```"):
