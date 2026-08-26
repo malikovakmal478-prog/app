@@ -6,7 +6,8 @@ from flask_cors import CORS
 import google.generativeai as genai
 
 app = Flask(__name__, template_folder=".")
-CORS(app)
+# CORS sozlamasini barcha domenlar uchun ochiq qilish
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 model = genai.GenerativeModel(
@@ -16,7 +17,7 @@ model = genai.GenerativeModel(
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return jsonify({"status": "Server ishlamoqda"}), 200
 
 @app.route('/agent-build', methods=['POST'])
 def agent_build():
@@ -34,9 +35,6 @@ def agent_build():
         MUHIM KO'RSATMALAR:
         1. Standart "Salom Mini Ilova" degan qisqa shablon BERMANG.
         2. Foydalanuvchi so'rovi bo'yicha to'liq, interaktiv va vizual boy loyiha yarating.
-           - Agar o'yin so'ralsa: Bosiladigan tugmalar, balans hisoblagichi, energiya paneli va animatsiyalar bo'lsin.
-           - Agar do'kon so'ralsa: Mahsulot kartochkalari, savatcha (cart), narxlar va buyurtma berish tugmasi bo'lsin.
-           - Agar media/video so me'yorida so'ralsa: Video pleyer ramkalari, layk tugmalari va izohlar bo'limi bo'lsin.
         3. Kod TailwindCSS va Telegram WebApp SDK (`https://telegram.org/js/telegram-web-app.js`) bilan birgalikda to'liq ishlashi kerak.
 
         Natijani FAQAT valid JSON formatida qaytaring:
