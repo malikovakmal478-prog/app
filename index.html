@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Bot & Mini App Platform</title>
-    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
-    <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css)">
-    <script src="[https://accounts.google.com/gsi/client](https://accounts.google.com/gsi/client)" async defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans min-h-screen p-6">
     <div class="max-w-xl mx-auto bg-white p-6 rounded-2xl shadow-xl mt-6 border">
@@ -73,7 +73,7 @@
             statusBox.innerText = "AI shaxsiy Mini App kodingizni yaratmoqda va bazaga saqlamoqda...";
 
             try {
-                const res = await fetch('[https://mini-replit.onrender.com/deploy-bot](https://mini-replit.onrender.com/deploy-bot)', {
+                const res = await fetch('https://mini-replit.onrender.com/deploy-bot', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ token, prompt, email: currentUserEmail })
