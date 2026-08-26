@@ -44,7 +44,7 @@
             <div class="mt-8">
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Shablonlar</p>
                 <div class="space-y-2">
-                    <button onclick="setPrompt('Menga Telegram uchun video ko\'radigan Grender nomli mini app va bot yaratib ber')" class="w-full text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium text-gray-700 flex items-center gap-2">
+                    <button onclick="setPrompt('Menga Telegram uchun video ko\'radigan Grender nomli mini app yaratib ber')" class="w-full text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium text-gray-700 flex items-center gap-2">
                         <i class="fa-solid fa-globe"></i> Website / Media
                     </button>
                     <button onclick="setPrompt('Clicker tap-to-earn o\'yini Telegram Mini App balansi va energiyasi bilan')" class="w-full text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium text-gray-700 flex items-center gap-2">
@@ -118,7 +118,7 @@
         </footer>
     </main>
 
-    <!-- JAVASCRIPT: RENDER BACKEND VA AI BOG'LANISHI -->
+    <!-- JAVASCRIPT: YANGILANGAN TAIMAUTLI KOD -->
     <script>
         function setPrompt(text) {
             document.getElementById('prompt-input').value = text;
@@ -131,7 +131,7 @@
 
         function createNewProject() {
             resetForm();
-            alert("Yangi loyiha tayyor. Promp kiritib '⚡ Agent Build' tugmasini bosing.");
+            alert("Yangi loyiha tayyor. Prompt kiritib '⚡ Agent Build' tugmasini bosing.");
         }
 
         function switchTab(tabName) {
@@ -156,18 +156,23 @@
             buildBtn.classList.add('opacity-50');
             loading.classList.remove('hidden');
 
+            // Timeout funksiyasi (60 soniya kutadi)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000);
+
             try {
-                // TO'G'RI RENDER SERVER MANZILI KO'RSATILDI
                 const response = await fetch('https://mini-replit.onrender.com/agent-build', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: promptText })
+                    body: JSON.stringify({ prompt: promptText }),
+                    signal: controller.signal
                 });
+                clearTimeout(timeoutId);
 
                 const data = await response.json();
 
                 if (data.error) {
-                    alert("Xatolik: " + data.error);
+                    alert("AI Xatosi: " + data.error);
                 } else if (data.files && data.files.length > 0) {
                     const htmlFile = data.files.find(f => f.name.endsWith('.html')) || data.files[0];
                     const frame = document.getElementById('app-frame');
@@ -176,7 +181,11 @@
                     frame.srcdoc = htmlFile.content;
                 }
             } catch (err) {
-                alert("Server bilan bog'lanishda xatolik yuz berdi! Render server uyg'onayotgan bo'lishi mumkin.");
+                if (err.name === 'AbortError') {
+                    alert("Render server uxlap qolgan ekan, u uyg'onmoqda! 10 soniyadan keyin qayta 'Agent Build' tugmasini bosing.");
+                } else {
+                    alert("Bog'lanish xatosi! Render backend manzili to'g'riligini tekshiring.");
+                }
             } finally {
                 buildBtn.disabled = false;
                 buildBtn.classList.remove('opacity-50');
