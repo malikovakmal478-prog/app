@@ -11,11 +11,14 @@ import telebot
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "OPTIONS"], "allow_headers": "*"}})
 
+# Gemini API Klienti
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
+# Faol botlarni saqlash xotirasi
 ACTIVE_BOTS = {}
 
 def start_telegram_bot(token, bot_type, app_url=""):
+    """ Telegram botni fonda (Thread) ishga tushirish funksiyasi """
     try:
         bot = telebot.TeleBot(token)
 
@@ -96,8 +99,11 @@ def deploy_bot():
         result_json = json.loads(text_response)
         bot_type = result_json.get("type", "buttons")
 
-        # Botni fonda yurgazish
-        bot_thread = threading.Thread(target=start_telegram_bot, args=(token, bot_type, "[https://malikovakmal478-prog.github.io/mini-replit/](https://malikovakmal478-prog.github.io/mini-replit/)"))
+        # Botni fonda ishga tushirish (Sintaksis xatolari to'g'rilangan qator)
+        bot_thread = threading.Thread(
+            target=start_telegram_bot, 
+            args=(token, bot_type, "[https://malikovakmal478-prog.github.io/mini-replit/](https://malikovakmal478-prog.github.io/mini-replit/)")
+        )
         bot_thread.daemon = True
         bot_thread.start()
 
