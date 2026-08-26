@@ -40,15 +40,15 @@
                 </button>
             </nav>
 
-            <!-- Shablonlar (Template Chips) -->
+            <!-- Shablonlar -->
             <div class="mt-8">
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Shablonlar</p>
                 <div class="space-y-2">
-                    <button onclick="setPrompt('Website: Telegram Mini App uchun zamonaviy landing page yarating')" class="w-full text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium text-gray-700 flex items-center gap-2">
-                        <i class="fa-solid fa-globe"></i> Website
+                    <button onclick="setPrompt('Menga Telegram uchun video ko\'radigan Grender nomli mini app va bot yaratib ber')" class="w-full text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium text-gray-700 flex items-center gap-2">
+                        <i class="fa-solid fa-globe"></i> Website / Media
                     </button>
-                    <button onclick="setPrompt('Mobile App: Clicker tap-to-earn o\'yini Telegram Mini App')" class="w-full text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium text-gray-700 flex items-center gap-2">
-                        <i class="fa-solid fa-mobile-screen"></i> Mobile App
+                    <button onclick="setPrompt('Clicker tap-to-earn o\'yini Telegram Mini App balansi va energiyasi bilan')" class="w-full text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium text-gray-700 flex items-center gap-2">
+                        <i class="fa-solid fa-mobile-screen"></i> Mobile App / Game
                     </button>
                 </div>
             </div>
@@ -62,12 +62,12 @@
         </div>
     </aside>
 
-    <!-- ASOSIY ISH MAYDONI (MAIN CONTENT) -->
+    <!-- ASOSIY ISH MAYDONI -->
     <main class="flex-1 gradient-bg flex flex-col justify-between p-8 relative overflow-y-auto">
         
-        <!-- Yuqori qism (Header Title) -->
+        <!-- Header -->
         <div class="max-w-3xl mx-auto w-full text-center mt-12">
-            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight mb-2" id="main-title">
+            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight mb-2">
                 Bugun qanday Mini App yaratamiz?
             </h1>
             <p class="text-gray-500 text-sm">G'oyangizni yozing — AI Agent avtomatik kodini yozib beradi.</p>
@@ -95,14 +95,14 @@
                 </div>
             </div>
             
-            <!-- Yuklanish Holati (Loading Spinner) -->
+            <!-- Loading Spinner -->
             <div id="loading" class="hidden text-center mt-6">
                 <i class="fa-solid fa-circle-notch fa-spin text-red-500 text-3xl"></i>
                 <p class="text-sm font-medium text-gray-600 mt-2">AI Agent fayllarni yaratmoqda, kutib turing...</p>
             </div>
         </div>
 
-        <!-- O'NG TARAFI: NATIJA (PREVIEW MODAL OYNASI) -->
+        <!-- PREVIEW MODAL -->
         <div id="preview-container" class="hidden fixed inset-4 bg-white shadow-2xl rounded-2xl border border-gray-300 z-50 flex flex-col">
             <div class="bg-gray-100 px-4 py-3 border-b flex items-center justify-between rounded-t-2xl">
                 <span class="font-semibold text-sm text-gray-700 flex items-center gap-2">
@@ -118,14 +118,12 @@
         </footer>
     </main>
 
-    <!-- JAVASCRIPT: BARCHA TUGMALAR VA AI INTEGRATSIYASI -->
+    <!-- JAVASCRIPT: RENDER BACKEND VA AI BOG'LANISHI -->
     <script>
-        // Prompt matnini tayyor tugmalardan kiritish
         function setPrompt(text) {
             document.getElementById('prompt-input').value = text;
         }
 
-        // Yangi proyekt boshlash
         function resetForm() {
             document.getElementById('prompt-input').value = '';
             document.getElementById('preview-container').classList.add('hidden');
@@ -140,12 +138,10 @@
             alert(tabName.toUpperCase() + " bo'limiga o'tildi.");
         }
 
-        // Preview oynasini yopish
         function closePreview() {
             document.getElementById('preview-container').classList.add('hidden');
         }
 
-        // AI KOD GENERATSIYA FUNKSIYASI (BACKEND HARAKATI)
         async function generateApp() {
             const promptText = document.getElementById('prompt-input').value.trim();
             if (!promptText) {
@@ -161,7 +157,8 @@
             loading.classList.remove('hidden');
 
             try {
-                const response = await fetch('/agent-build', {
+                // TO'G'RI RENDER SERVER MANZILI KO'RSATILDI
+                const response = await fetch('https://mini-replit.onrender.com/agent-build', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ prompt: promptText })
@@ -172,7 +169,6 @@
                 if (data.error) {
                     alert("Xatolik: " + data.error);
                 } else if (data.files && data.files.length > 0) {
-                    // Yaratilgan HTML kodi olinadi va preview ga joylanadi
                     const htmlFile = data.files.find(f => f.name.endsWith('.html')) || data.files[0];
                     const frame = document.getElementById('app-frame');
                     
@@ -180,7 +176,7 @@
                     frame.srcdoc = htmlFile.content;
                 }
             } catch (err) {
-                alert("Server bilan bog'lanishda xatolik yuz berdi!");
+                alert("Server bilan bog'lanishda xatolik yuz berdi! Render server uyg'onayotgan bo'lishi mumkin.");
             } finally {
                 buildBtn.disabled = false;
                 buildBtn.classList.remove('opacity-50');
