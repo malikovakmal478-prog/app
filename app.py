@@ -1,8 +1,9 @@
 import os
 import json
 import re
+import sqlite3
 import threading
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_html
 from flask_cors import CORS
 from google import genai
 from google.genai import types
@@ -11,7 +12,28 @@ import telebot
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "OPTIONS"], "allow_headers": "*"}})
 
+# Gemini API
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+
+# Ma'lumotlar bazasini sozlash (SQLite)
+DB_FILE = "platform_database.db"
+
+def init_db():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS bots (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_email TEXT,
+            bot_token TEXT UNIQUE,
+            bot_type TEXT,
+            html_content TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+init_db()
 
 ACTIVE_BOTS = {}
 
@@ -26,21 +48,16 @@ def start_telegram_bot(token, bot_type, app_url=""):
                 web_app = telebot.types.WebAppInfo(url=app_url)
                 button = telebot.types.InlineKeyboardButton(text="📱 Mini App-ni ochish", web_app=web_app)
                 keyboard.add(button)
-                bot.reply_to(message, "Salom! Mini App-dan foydalanish uchun quyidagi tugmani bosing:", reply_markup=keyboard)
+                bot.reply_to(message, "Salom! Shaxsiy Mini App-ingizni ochish uchun quyidagi tugmani bosing:", reply_markup=keyboard)
             else:
                 keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
                 keyboard.add("ℹ️ Biz haqimizda", "📞 Bog'lanish")
-                keyboard.add("🛍️ Xizmatlar / Mahsulotlar")
+                keyboard.add("🛍️ Xizmatlar")
                 bot.reply_to(message, "Salom! AI tomonidan yaratilgan botga xush kelibsiz!", reply_markup=keyboard)
 
         @bot.message_handler(func=lambda message: True)
         def echo_all(message):
-            if message.text == "ℹ️ Biz haqimizda":
-                bot.reply_to(message, "Bu AI Bot Constructor platformasi orqali yaratilgan bot.")
-            elif message.text == "📞 Bog'lanish":
-                bot.reply_to(message, "Administrator bilan bog'lanish uchun xabar qoldiring.")
-            else:
-                bot.reply_to(message, f"Siz yozdingiz: {message.text}")
+            bot.reply_to(message, f"Siz yozdingiz: {message.text}")
 
         ACTIVE_BOTS[token] = bot
         bot.infinity_polling(skip_pending=True)
@@ -49,7 +66,20 @@ def start_telegram_bot(token, bot_type, app_url=""):
 
 @app.route('/', methods=['GET'])
 def index():
-    return jsonify({"status": "AI Platform Engine ishlamoqda"}), 200
+    return jsonify({"status": "Mukammal AI Platform Engine ishlamoqda"}), 200
+
+# Dinamik Mini App sahifasini uzatish (Har bir bot uchun alohida)
+@app.route('/app/<int:bot_id>', methods=['GET'])
+def get_mini_app(bot_id):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT html_content FROM bots WHERE id = ?", (bot_id,))
+    row = cursor.fetchone()
+    conn.close()
+
+    if row and row[0]:
+        return row[0], 200, {'Content-Type': 'text/html; charset=utf-8'}
+    return "Mini App topilmadi!", 404
 
 @app.route('/deploy-bot', methods=['POST', 'OPTIONS'])
 def deploy_bot():
@@ -60,6 +90,7 @@ def deploy_bot():
         data = request.get_json()
         token = data.get('token', '').strip()
         prompt = data.get('prompt', '').strip()
+        user_email = data.get('email', 'anonymous')
 
         if not token or not prompt:
             return jsonify({'error': 'Bot Token va Prompt kiritilishi shart!'}), 400
@@ -68,16 +99,11 @@ def deploy_bot():
         Siz Telegram Bot va Mini App bo'yicha mutaxassissiz.
         Foydalanuvchi so'rovi: "{prompt}"
 
-        Agar so'rov Mini App bo'lsa, HTML va Telegram WebApp SDK kodini yarating.
+        Agar so'rov Mini App bo'lsa, HTML (TailwindCSS va Telegram SDK bilan) kodini yarating.
         Natijani FAQAT valid JSON formatida qaytaring:
         {{
             "type": "miniapp",
-            "files": [
-                {{
-                    "name": "index.html",
-                    "content": "...HTML kodi..."
-                }}
-            ]
+            "html": "...to'liq HTML kodi..."
         }}
         """
 
@@ -94,23 +120,37 @@ def deploy_bot():
 
         result_json = json.loads(text_response)
         bot_type = result_json.get("type", "buttons")
+        html_content = result_json.get("html", "")
 
-        # URL bo'laklab yig'ildi (avtomatik havola buzilishi oldi olindi)
-        protocol = "https://"
-        domain = "malikovakmal478-prog.github.io"
-        path = "/mini-replit/"
-        target_url = protocol + domain + path
+        # Bazaga saqlash
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO bots (user_email, bot_token, bot_type, html_content)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(bot_token) DO UPDATE SET bot_type=excluded.bot_type, html_content=excluded.html_content
+        ''', (user_email, token, bot_type, html_content))
+        
+        bot_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
 
+        # Har bir bot uchun unikal Mini App havolasi shakllantiriladi
+        server_domain = request.host_url.rstrip('/')
+        mini_app_url = f"{server_domain}/app/{bot_id}"
+
+        # Botni fonda ishga tushirish
         bot_thread = threading.Thread(
             target=start_telegram_bot, 
-            args=(token, bot_type, target_url)
+            args=(token, bot_type, mini_app_url)
         )
         bot_thread.daemon = True
         bot_thread.start()
 
         return jsonify({
             "status": "success",
-            "message": "Bot yaratildi va ishga tushirildi!"
+            "message": "Bot yaratildi, bazaga saqlandi va ishga tushirildi!",
+            "app_url": mini_app_url
         })
 
     except Exception as e:
