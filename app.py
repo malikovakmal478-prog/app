@@ -10,7 +10,9 @@ from google.genai import types
 import telebot
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "OPTIONS"], "allow_headers": "*"}})
+
+# CORS blokirovkasini butunlay o'chirish
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
@@ -46,25 +48,32 @@ def start_telegram_bot(token, bot_type, app_url=""):
                 web_app = telebot.types.WebAppInfo(url=app_url)
                 button = telebot.types.InlineKeyboardButton(text="📱 Mini App-ni ochish", web_app=web_app)
                 keyboard.add(button)
-                bot.reply_to(message, "Salom! Shaxsiy AI Mini App'ingiz tayyor:", reply_markup=keyboard)
+                bot.reply_to(message, "Salom! AI tomonidan siz uchun yaratilgan Mini App:", reply_markup=keyboard)
             else:
                 keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-                keyboard.add("ℹ️ Ma'lumot", "📞 Bog'lanish")
-                keyboard.add("🛍️ Xizmatlar Katalogi")
-                bot.reply_to(message, "Salom! AI BotStudio orqali yaratilgan botga xush kelibsiz!", reply_markup=keyboard)
+                keyboard.add("ℹ️ Biz haqimizda", "📞 Bog'lanish")
+                keyboard.add("🛍️ Xizmat va Mahsulotlar")
+                bot.reply_to(message, "Salom! AI tomonidan yaratilgan professional botga xush kelibsiz!", reply_markup=keyboard)
 
         @bot.message_handler(func=lambda message: True)
         def echo_all(message):
-            bot.reply_to(message, f"Sizning so'rovingiz qabul qilindi: {message.text}")
+            bot.reply_to(message, f"Siz yozdingiz: {message.text}")
 
         ACTIVE_BOTS[token] = bot
         bot.infinity_polling(skip_pending=True)
     except Exception as e:
         print(f"Bot error: {e}")
 
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
+
 @app.route('/', methods=['GET'])
 def index():
-    return jsonify({"status": "AI Platform Engine Active"}), 200
+    return jsonify({"status": "AI Platform Engine Online"}), 200
 
 @app.route('/app/<int:bot_id>', methods=['GET'])
 def get_mini_app(bot_id):
@@ -93,14 +102,14 @@ def deploy_bot():
             return jsonify({'error': 'Bot Token va Prompt kiritilishi shart!'}), 400
 
         system_prompt = f"""
-        Siz Telegram Bot va Mini App bo'yicha eng kuchli AI dasturchisiz.
+        Siz Telegram Bot va Web Application bo'yicha dunyodagi eng zo'r AI dasturchisiz.
         Foydalanuvchi so'rovi: "{prompt}"
 
-        Agar so'rov Mini App bo'lsa, chiroyli modern UI (TailwindCSS va Telegram WebApp SDK) bo'lgan HTML tayyorlang.
+        Agar so meva, Hamster Kombat, TikTok, E-commerce yoki o'yin tarzidagi Mini App bo'lsa HTML/JS tayyorlang.
         JSON formatida javob bering:
         {{
             "type": "miniapp",
-            "html": "...to'liq HTML kodi..."
+            "html": "...to'liq HTML va JavaScript kodi..."
         }}
         """
 
@@ -116,8 +125,8 @@ def deploy_bot():
             text_response = re.sub(r"\n?```$", "", text_response)
 
         result_json = json.loads(text_response)
-        bot_type = result_json.get("type", "buttons")
-        html_content = result_json.get("html", "")
+        bot_type = result_json.get("type", "miniapp")
+        html_content = result_json.get("html", "<h1>Bot tayyor!</h1>")
 
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
@@ -143,7 +152,7 @@ def deploy_bot():
 
         return jsonify({
             "status": "success",
-            "message": "Bot yaratildi va ishga tushirildi!",
+            "message": "Bot muvaffaqiyatli yaratildi va ishga tushdi!",
             "app_url": mini_app_url
         })
 
