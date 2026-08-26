@@ -4,3 +4,5 @@ gunicorn
 google-genai
 pyTelegramBotAPI
 requests
+google-auth
+google-auth-oauthlib
