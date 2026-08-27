@@ -1,14 +1,10 @@
 import os
+import requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from google import genai
-from google.genai import types
 
 app = Flask(__name__)
 CORS(app)
-
-# Gemini klientini to'g'ri ishga tushirish
-client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
 chat_histories = {}
 user_stats = {"total_requests": 0, "active_users": set(), "created_apps": 0}
@@ -36,29 +32,30 @@ def deploy_bot():
             chat_histories[user_email] = []
         chat_histories[user_email].append({"prompt": prompt, "token": bot_token})
 
-        system_instruction = (
-            "Siz dunyodagi eng kuchli AI platformasi — VELTRIX'ning asosiy miyasiz. "
-            "Foydalanuvchilarga istalgan Telegram bot, Mini App yoki veb-sayt yaratishda mukammal kod va ko'rsatmalar berasiz. "
-            "18+, zo'ravonlik yoki noqonuniy kontent so'ralsa mutlaqo rad etasiz. "
-            "Javoblaringiz aniq va professional bo'lsin."
-        )
-
-        # Xatolik bermaydigan Chat orqali habar yuborish usuli
-        chat = client.chats.create(
-            model='gemini-2.5-flash',
-            config=types.GenerateContentConfig(
-                system_instruction=system_instruction,
-                temperature=0.7
-            )
-        )
+        api_key = os.environ.get("GEMINI_API_KEY")
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
         
-        response = chat.send_message(prompt)
+        payload = {
+            "contents": [{
+                "parts": [{"text": f"Siz VELTRIX platformasisiz. Foydalanuvchiga yordam bering.\n\nBuyruq: {prompt}"}]
+            }]
+        }
+        
+        headers = {'Content-Type': 'application/json'}
+        
+        response = requests.post(url, json=payload, headers=headers, timeout=30)
+        res_data = response.json()
+        
+        if "candidates" in res_data:
+            ai_text = res_data["candidates"][0]["content"]["parts"][0]["text"]
+        else:
+            ai_text = f"Javob olishda xatolik: {res_data}"
 
         app_url = f"https://veltrix.ai/preview/{user_stats['created_apps']}"
 
         return jsonify({
             "status": "success",
-            "message": f"VELTRIX muvaffaqiyatli yaratdi va serverga ulab qo'ydi!\n\nAI Javobi:\n{response.text}",
+            "message": f"VELTRIX muvaffaqiyatli yaratdi va serverga ulab qo'ydi!\n\nAI Javobi:\n{ai_text}",
             "app_url": app_url
         })
 
