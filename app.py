@@ -46,9 +46,9 @@ def deploy_bot():
             "Javoblaringiz har doim aniq, professional va to'liq ishlaydigan bo'lsin."
         )
 
-        # Gemini orqali javob olish (To'g'ri model nomi: gemini-1.5-flash)
+        # Gemini orqali javob olish (To'g'ri model: gemini-2.5-flash)
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='gemini-2.5-flash',
             contents=prompt,
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,
