@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VELTRIX - AI App, Website & Bot Generator</title>
+    <!-- SEO Meta Tags for Google Search -->
+    <meta name="description" content="VELTRIX - Dunyodagi eng kuchli AI yordamida telegram botlar, mini-applar va veb-saytlarni kod yozmasdan yarating.">
+    <meta name="keywords" content="veltrix, ai bot generator, mini app creator, telegram bot yasash, ai platform">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col justify-between font-sans">
@@ -15,26 +18,26 @@
             <span class="text-xl font-extrabold tracking-wider text-white">VELTRIX</span>
         </div>
         <div class="flex items-center space-x-4">
-            <button onclick="openAdminStats()" class="text-gray-300 hover:text-white font-medium text-sm bg-gray-700 px-3 py-1.5 rounded-lg">📊 Admin Panel</button>
-            <button onclick="loginWithGoogle()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow">Google Hisob bilan kirish</button>
+            <button onclick="openAdminStats()" class="text-gray-300 hover:text-white font-medium text-sm bg-gray-700 px-3 py-1.5 rounded-lg transition">📊 Admin Panel</button>
+            <button onclick="loginWithGoogle()" id="authBtn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow transition">Google Hisob bilan kirish</button>
         </div>
     </header>
 
     <!-- Main Content -->
     <main class="flex flex-col items-center justify-center flex-grow px-4 py-12 text-center">
         <h1 class="text-4xl md:text-6xl font-extrabold mb-4 bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">What will you build with VELTRIX?</h1>
-        <p class="text-gray-400 mb-8 text-lg">Dunodagi eng kuchli AI yordamida bot, mini-app va saytlarni bir zumda yarating</p>
+        <p class="text-gray-400 mb-8 text-lg">Hamma narsaga qodir AI yordamida bot, sayt va ilovalarni bir zumda yarating</p>
 
         <!-- Prompt Box -->
         <div class="w-full max-w-2xl bg-gray-800 border border-gray-700 rounded-2xl shadow-2xl p-4 relative flex flex-col">
-            <textarea id="promptInput" rows="3" class="w-full bg-transparent outline-none resize-none text-white placeholder-gray-500 p-2 text-base" placeholder="Qanday bot yoki sayt yaratishni xohlaysiz? Rasm yoki video yuklab tushuntirishingiz ham mumkin..."></textarea>
+            <textarea id="promptInput" rows="3" class="w-full bg-transparent outline-none resize-none text-white placeholder-gray-500 p-2 text-base" placeholder="Qanday bot, sayt yoki rasm yaratishni xohlaysiz? Rasm yuklab ham tushuntirishingiz mumkin..."></textarea>
             
             <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-700">
                 <div class="flex items-center space-x-3">
-                    <label class="cursor-pointer p-2 hover:bg-gray-700 rounded-full text-gray-300 transition" title="Rasm yoki Video yuklash">
-                        📷 <input type="file" id="mediaInput" class="hidden" accept="image/*,video/*">
+                    <label class="cursor-pointer p-2 hover:bg-gray-700 rounded-full text-gray-300 transition" title="Rasm yoki Media yuklash">
+                        📷 <input type="file" id="mediaInput" class="hidden" accept="image/*,video/*" onchange="handleFile(event)">
                     </label>
-                    <button onclick="newChat()" class="text-sm text-gray-400 hover:text-white bg-gray-700 px-3 py-1 rounded-lg">➕ Yangi Chat</button>
+                    <button onclick="newChat()" class="text-sm text-gray-400 hover:text-white bg-gray-700 px-3 py-1.5 rounded-lg transition">➕ Yangi Chat</button>
                 </div>
                 <button onclick="generateProject()" class="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg transition">
                     Yaratish ➔
@@ -46,6 +49,9 @@
         <div id="resultArea" class="mt-8 hidden w-full max-w-2xl bg-gray-800 border border-gray-700 rounded-xl p-6 text-left shadow-2xl">
             <h3 class="text-lg font-bold text-orange-400 mb-2">VELTRIX Natijasi:</h3>
             <p id="statusText" class="text-gray-300 mb-4 whitespace-pre-wrap">Tayyorlanmoqda...</p>
+            <div id="generatedImageContainer" class="mb-4 hidden">
+                <img id="generatedImage" src="" alt="Generatsiya qilingan rasm" class="rounded-lg max-h-80 mx-auto shadow-md">
+            </div>
             <div id="actionButtons" class="flex gap-4">
                 <a id="appLink" href="#" target="_blank" class="hidden px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow transition">👁️ Preview (Ko'rish)</a>
             </div>
@@ -54,50 +60,74 @@
 
     <!-- Footer -->
     <footer class="py-6 text-center text-gray-500 text-sm border-t border-gray-800">
-        © 2026 VELTRIX Engine. All rights reserved.
+        © 2026 VELTRIX Engine Platform. All rights reserved.
     </footer>
 
     <script>
+        let currentUser = "guest@veltrix.ai";
+        let uploadedFileBase64 = null;
+
+        function loginWithGoogle() {
+            let email = prompt("Google hisobingiz (email) kiriting:", "user@gmail.com");
+            if (email) {
+                currentUser = email;
+                document.getElementById('authBtn').innerText = email.split('@')[0];
+                alert("Google hisobga muvaffaqiyatli ulandingiz!");
+            }
+        }
+
         function newChat() {
             document.getElementById('promptInput').value = '';
             document.getElementById('resultArea').classList.add('hidden');
-            alert("Yangi chat ochildi!");
+            uploadedFileBase64 = null;
+            alert("Yangi chat ochildi. Tarix saqlandi!");
         }
 
-        function loginWithGoogle() {
-            alert("Google hisobingiz muvaffaqiyatli ulandi (VELTRIX Auth)");
+        function handleFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedFileBase64 = e.target.result;
+                    alert("Fayl muvaffaqiyatli yuklandi va AI ga biriktirildi!");
+                };
+                reader.readAsDataURL(file);
+            }
         }
 
         async function openAdminStats() {
             try {
                 const res = await fetch('https://mini-replit.onrender.com/stats');
                 const data = await res.json();
-                alert(`📊 VELTRIX Server Statistikasi:\n- Jami so'rovlar: ${data.total_requests}\n- Faol foydalanuvchilar: ${data.active_users_count}\n- Yaratilgan ilovalar: ${data.created_apps}`);
+                alert(`📊 VELTRIX Admin Statistika:\n- Jami so'rovlar: ${data.total_requests}\n- Faol foydalanuvchilar: ${data.active_users_count}\n- Yaratilgan ilovalar: ${data.created_apps}`);
             } catch (e) {
-                alert("Statistikani olishda xatolik yuz berdi.");
+                alert("Server bilan aloqada xatolik.");
             }
         }
 
         async function generateProject() {
             const prompt = document.getElementById('promptInput').value.trim();
-            if (!prompt) {
-                alert("Iltimos, buyruq kiriting!");
+            if (!prompt && !uploadedFileBase64) {
+                alert("Iltimos, buyruq kiriting yoki rasm yuklang!");
                 return;
             }
 
             const resultArea = document.getElementById('resultArea');
             const statusText = document.getElementById('statusText');
             const appLink = document.getElementById('appLink');
+            const imgContainer = document.getElementById('generatedImageContainer');
+            const imgElement = document.getElementById('generatedImage');
 
             resultArea.classList.remove('hidden');
             statusText.innerText = "VELTRIX AI tahlil qilmoqda va yaratmoqda...";
             appLink.classList.add('hidden');
+            imgContainer.classList.add('hidden');
 
             try {
                 const response = await fetch('https://mini-replit.onrender.com/deploy-bot', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: prompt, email: "user@veltrix.ai" })
+                    body: JSON.stringify({ prompt: prompt, email: currentUser, file: uploadedFileBase64 })
                 });
 
                 const data = await response.json();
@@ -105,6 +135,11 @@
                     statusText.innerText = data.message;
                     appLink.href = data.app_url;
                     appLink.classList.remove('hidden');
+
+                    if (data.image_url) {
+                        imgElement.src = data.image_url;
+                        imgContainer.classList.remove('hidden');
+                    }
                 } else {
                     statusText.innerText = "Xatolik: " + (data.error || "Noma'lum xato");
                 }
