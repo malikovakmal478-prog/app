@@ -23,6 +23,7 @@ def deploy_bot():
         data = request.json
         prompt = data.get('prompt', '')
         user_email = data.get('email', 'guest@veltrix.ai')
+        bot_token = data.get('token', '')
         
         if not prompt:
             return jsonify({"status": "error", "error": "Buyruq kiritilmadi!"}), 400
@@ -35,19 +36,19 @@ def deploy_bot():
         # Chat tarixida saqlash
         if user_email not in chat_histories:
             chat_histories[user_email] = []
-        chat_histories[user_email].append({"prompt": prompt})
+        chat_histories[user_email].append({"prompt": prompt, "token": bot_token})
 
-        # 18+ va taqiqlangan kontentni qat'iy cheklaydigan hamda kuchli javob beruvchi tizim ko'rsatmasi
+        # Tizim ko'rsatmasi
         system_instruction = (
             "Siz dunyodagi eng kuchli AI platformasi — VELTRIX'ning asosiy miyasiz. "
             "Foydalanuvchilarga istalgan Telegram bot, Mini App yoki veb-sayt yaratishda mukammal kod va ko'rsatmalar berasiz. "
-            "Qat'iy qoida: Har qanday 18+ (kattalar uchun), zo'ravonlik, noqonuniy yoki zararli kontent so'ralsa, uni mutlaqo rad etasiz. "
+            "Qat'iy qoida: Har qanday 18+ (kattalar uchun), zo'ravonlik, noqonuniy yoki zararli kontent so'ralsa, mutlaqo rad etasiz. "
             "Javoblaringiz har doim aniq, professional va to'liq ishlaydigan bo'lsin."
         )
 
-        # Gemini orqali javob olish
+        # Gemini orqali javob olish (To'g'ri model nomi: gemini-1.5-flash)
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-1.5-flash',
             contents=prompt,
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,
@@ -59,7 +60,7 @@ def deploy_bot():
 
         return jsonify({
             "status": "success",
-            "message": f"VELTRIX muvaffaqiyatli yaratdi va umrbod Serverga ulab qo'ydi!\n\nAI Javobi:\n{response.text}",
+            "message": f"VELTRIX muvaffaqiyatli yaratdi va serverga ulab qo'ydi!\n\nAI Javobi:\n{response.text}",
             "app_url": app_url
         })
 
