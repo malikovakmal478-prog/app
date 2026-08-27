@@ -33,11 +33,19 @@ def deploy_bot():
         chat_histories[user_email].append({"prompt": prompt, "token": bot_token})
 
         api_key = os.environ.get("GEMINI_API_KEY")
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        # To'g'ri va ishlaydigan model versiyasi (gemini-2.0-flash)
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
         
         payload = {
             "contents": [{
-                "parts": [{"text": f"Siz VELTRIX platformasisiz. Foydalanuvchiga yordam bering.\n\nBuyruq: {prompt}"}]
+                "parts": [{
+                    "text": (
+                        "Siz dunyodagi eng kuchli AI platformasi — VELTRIX'ning asosiy miyasiz. "
+                        "Foydalanuvchilarga istalgan Telegram bot, Mini App yoki veb-sayt yaratishda mukammal kod va ko'rsatmalar berasiz. "
+                        "18+, zo'ravonlik yoki noqonuniy kontent so'ralsa mutlaqo rad etasiz. "
+                        f"Buyruq: {prompt}"
+                    )
+                }]
             }]
         }
         
