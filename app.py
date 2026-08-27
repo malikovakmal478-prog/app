@@ -9,12 +9,13 @@ CORS(app)
 
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
+# Xotira bazasi (Chat tarixi va statistika uchun)
 chat_histories = {}
 user_stats = {"total_requests": 0, "active_users": set(), "created_apps": 0}
 
 @app.route('/')
 def home():
-    return "VELTRIX Super AI Server is live and running! 🚀", 200
+    return "VELTRIX Ultimate Engine Server is live and running! 🚀", 200
 
 @app.route('/deploy-bot', methods=['POST'])
 def deploy_bot():
@@ -26,21 +27,30 @@ def deploy_bot():
         if not prompt:
             return jsonify({"status": "error", "error": "Buyruq kiritilmadi!"}), 400
 
+        # Statistikani yangilash
         user_stats["total_requests"] += 1
         user_stats["active_users"].add(user_email)
         user_stats["created_apps"] += 1
 
-        # 18+ va taqiqlangan kontentni qat'iy cheklaydigan hamda eng kuchli javob beruvchi tizim ko'rsatmasi
+        # Chat tarixida saqlash
+        if user_email not in chat_histories:
+            chat_histories[user_email] = []
+        chat_histories[user_email].append({"prompt": prompt})
+
+        # 18+ va taqiqlangan kontentni qat'iy cheklaydigan hamda kuchli javob beruvchi tizim ko'rsatmasi
+        system_instruction = (
+            "Siz dunyodagi eng kuchli AI platformasi — VELTRIX'ning asosiy miyasiz. "
+            "Foydalanuvchilarga istalgan Telegram bot, Mini App yoki veb-sayt yaratishda mukammal kod va ko'rsatmalar berasiz. "
+            "Qat'iy qoida: Har qanday 18+ (kattalar uchun), zo'ravonlik, noqonuniy yoki zararli kontent so'ralsa, uni mutlaqo rad etasiz. "
+            "Javoblaringiz har doim aniq, professional va to'liq ishlaydigan bo'lsin."
+        )
+
+        # Gemini orqali javob olish
         response = client.models.generate_content(
             model='gemini-2.5-flash',
             contents=prompt,
             config=types.GenerateContentConfig(
-                system_instruction=(
-                    "Siz dunyodagi eng kuchli AI platformasi — VELTRIX'ning asosiy miyasiz. "
-                    "Foydalanuvchilarga istalgan Telegram bot, Mini App yoki veb-sayt yaratishda mukammal kod va ko'rsatmalar berasiz. "
-                    "Qat'iy qoida: Har qanday 18+ (kattalar uchun), zo'ravonlik, noqonuniy yoki zararli kontent so'ralsa, uni mutlaqo rad etasiz. "
-                    "Javoblaringiz har doim aniq, professional va to'liq ishlaydigan bo'lsin."
-                ),
+                system_instruction=system_instruction,
                 temperature=0.7
             )
         )
