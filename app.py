@@ -80,7 +80,6 @@ def get_mini_app(bot_id):
 
 @app.route('/deploy-bot', methods=['POST', 'OPTIONS'])
 def deploy_bot():
-    # OPTIONS so'rovi (Preflight) uchun darhol OK javob berish
     if request.method == 'OPTIONS':
         response = make_response(jsonify({"status": "OK"}), 200)
         return response
@@ -129,8 +128,13 @@ def deploy_bot():
             ON CONFLICT(bot_token) DO UPDATE SET bot_type=excluded.bot_type, html_content=excluded.html_content
         ''', (user_email, token, bot_type, html_content))
         
-        bot_id = cursor.lastrowid
+        # Olingan id ni olishdan oldin commit qilish xavfsizroq bo'ladi
         conn.commit()
+        
+        # So'nggi qo'shilgan id ni olish
+        cursor.execute("SELECT id FROM bots WHERE bot_token = ?", (token,))
+        row = cursor.fetchone()
+        bot_id = row[0] if row else 1
         conn.close()
 
         server_domain = request.host_url.rstrip('/')
