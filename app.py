@@ -7,9 +7,9 @@ from google.genai import types
 app = Flask(__name__)
 CORS(app)
 
+# Gemini klientini to'g'ri ishga tushirish
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
-# Xotira bazasi (Chat tarixi va statistika uchun)
 chat_histories = {}
 user_stats = {"total_requests": 0, "active_users": set(), "created_apps": 0}
 
@@ -28,33 +28,31 @@ def deploy_bot():
         if not prompt:
             return jsonify({"status": "error", "error": "Buyruq kiritilmadi!"}), 400
 
-        # Statistikani yangilash
         user_stats["total_requests"] += 1
         user_stats["active_users"].add(user_email)
         user_stats["created_apps"] += 1
 
-        # Chat tarixida saqlash
         if user_email not in chat_histories:
             chat_histories[user_email] = []
         chat_histories[user_email].append({"prompt": prompt, "token": bot_token})
 
-        # Tizim ko'rsatmasi
         system_instruction = (
             "Siz dunyodagi eng kuchli AI platformasi — VELTRIX'ning asosiy miyasiz. "
             "Foydalanuvchilarga istalgan Telegram bot, Mini App yoki veb-sayt yaratishda mukammal kod va ko'rsatmalar berasiz. "
-            "Qat'iy qoida: Har qanday 18+ (kattalar uchun), zo'ravonlik, noqonuniy yoki zararli kontent so'ralsa, mutlaqo rad etasiz. "
-            "Javoblaringiz har doim aniq, professional va to'liq ishlaydigan bo'lsin."
+            "18+, zo'ravonlik yoki noqonuniy kontent so'ralsa mutlaqo rad etasiz. "
+            "Javoblaringiz aniq va professional bo'lsin."
         )
 
-        # Gemini orqali javob olish (To'g'ri model: gemini-2.5-flash)
-        response = client.models.generate_content(
+        # Xatolik bermaydigan Chat orqali habar yuborish usuli
+        chat = client.chats.create(
             model='gemini-2.5-flash',
-            contents=prompt,
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,
                 temperature=0.7
             )
         )
+        
+        response = chat.send_message(prompt)
 
         app_url = f"https://veltrix.ai/preview/{user_stats['created_apps']}"
 
