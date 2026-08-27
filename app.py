@@ -7,16 +7,14 @@ from google.genai import types
 app = Flask(__name__)
 CORS(app)
 
-# Gemini API kalitini sozlash (Render muhitidagi GEMINI_API_KEY olinadi)
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
-# Xotira va statistika uchun bazaviy o'zgaruvchilar
 chat_histories = {}
 user_stats = {"total_requests": 0, "active_users": set(), "created_apps": 0}
 
 @app.route('/')
 def home():
-    return "VELTRIX AI Server is running live! 🚀", 200
+    return "VELTRIX Super AI Server is live and running! 🚀", 200
 
 @app.route('/deploy-bot', methods=['POST'])
 def deploy_bot():
@@ -28,17 +26,21 @@ def deploy_bot():
         if not prompt:
             return jsonify({"status": "error", "error": "Buyruq kiritilmadi!"}), 400
 
-        # Statistikani yangilash
         user_stats["total_requests"] += 1
         user_stats["active_users"].add(user_email)
         user_stats["created_apps"] += 1
 
-        # Gemini AI orqali kuchli javob yaratish (18+ kontentni cheklash uchun system instruction)
+        # 18+ va taqiqlangan kontentni qat'iy cheklaydigan hamda eng kuchli javob beruvchi tizim ko'rsatmasi
         response = client.models.generate_content(
             model='gemini-2.5-flash',
             contents=prompt,
             config=types.GenerateContentConfig(
-                system_instruction="Siz VELTRIX AI professional dasturchisiz. Foydalanuvchiga Telegram bot yoki Mini App yaratishda yordam berasiz. Har qanday 18+, zo'ravonlik yoki taqiqlangan kontentni qat'iy rad etasiz va xavfsiz javob qaytarasiz.",
+                system_instruction=(
+                    "Siz dunyodagi eng kuchli AI platformasi — VELTRIX'ning asosiy miyasiz. "
+                    "Foydalanuvchilarga istalgan Telegram bot, Mini App yoki veb-sayt yaratishda mukammal kod va ko'rsatmalar berasiz. "
+                    "Qat'iy qoida: Har qanday 18+ (kattalar uchun), zo'ravonlik, noqonuniy yoki zararli kontent so'ralsa, uni mutlaqo rad etasiz. "
+                    "Javoblaringiz har doim aniq, professional va to'liq ishlaydigan bo'lsin."
+                ),
                 temperature=0.7
             )
         )
@@ -47,7 +49,7 @@ def deploy_bot():
 
         return jsonify({
             "status": "success",
-            "message": f"VELTRIX AI muvaffaqiyatli yaratdi! Javob: {response.text[:150]}...",
+            "message": f"VELTRIX muvaffaqiyatli yaratdi va umrbod Serverga ulab qo'ydi!\n\nAI Javobi:\n{response.text}",
             "app_url": app_url
         })
 
