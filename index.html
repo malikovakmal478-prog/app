@@ -51,8 +51,8 @@
 </div>
 
 <script>
-    // DIQQAT: Render dagi veb-ilovangiz havolasini bu yerga yozing (oxirida / belgisi bo'lmasin)
-    const BACKEND_URL = "https://malikovakmal478-prog.github.io/app/";
+    // Render dagi aniq backend havolasi
+    const BACKEND_URL = "https://mini-replit.onrender.com";
 
     async function generateAIBot() {
         const token = document.getElementById('aiToken').value.trim();
@@ -84,7 +84,7 @@
             }
         } catch (err) {
             status.style.color = "#f87171";
-            status.innerText = "❌ Server bilan aloqa o'rnatib bo'lmadi. CORS yoki URL manzilni tekshiring.";
+            status.innerText = "❌ Server bilan aloqa o'rnatib bo'lmadi. Server uxlayotgan bo'lishi mumkin, qayta urinib ko'ring.";
         }
     }
 
