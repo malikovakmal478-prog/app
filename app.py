@@ -50,8 +50,8 @@ def deploy_bot():
   )
 
   try:
-    # Gemini modelini chaqirish
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    # Gemini modeli (gemini-pro orqali xatolarsiz ishlaydi)
+    model = genai.GenerativeModel("gemini-pro")
     response = model.generate_content(full_prompt)
     bot_code = response.text.strip()
 
