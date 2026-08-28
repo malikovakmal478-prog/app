@@ -4,7 +4,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
+# Barcha domenlardan keladigan so'rovlarga ruxsat berish
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 chat_histories = {}
 user_stats = {"total_requests": 0, "active_users": set(), "created_apps": 0}
@@ -13,10 +14,13 @@ user_stats = {"total_requests": 0, "active_users": set(), "created_apps": 0}
 def home():
     return "VELTRIX Ultimate Engine Server is live and running! 🚀", 200
 
-@app.route('/deploy-bot', methods=['POST'])
+@app.route('/deploy-bot', methods=['POST', 'OPTIONS'])
 def deploy_bot():
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+        
     try:
-        data = request.json
+        data = request.json or {}
         prompt = data.get('prompt', '')
         user_email = data.get('email', 'guest@veltrix.ai')
         bot_token = data.get('token', '')
@@ -69,8 +73,10 @@ def deploy_bot():
     except Exception as e:
         return jsonify({"status": "error", "error": str(e)}), 500
 
-@app.route('/stats', methods=['GET'])
+@app.route('/stats', methods=['GET', 'OPTIONS'])
 def get_stats():
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
     return jsonify({
         "total_requests": user_stats["total_requests"],
         "active_users_count": len(user_stats["active_users"]),
