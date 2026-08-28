@@ -16,7 +16,11 @@ if GEMINI_API_KEY:
 running_bots = {}
 
 # Taqiqlangan mavzularni tekshirish uchun filtr
-FORBIDDEN_KEYWORDS = ["porn", "sex", "nsfw", "betting", "casino", "gambling", "scam", "hack", "malware", "suicide", "porno", "qimor"]
+FORBIDDEN_KEYWORDS = [
+    "porn", "sex", "nsfw", "betting", "casino", "gambling", 
+    "scam", "hack", "malware", "suicide", "porno", "qimor", 
+    "seks", "aldash", "feyk"
+]
 
 def is_content_safe(prompt_text):
     text_lower = prompt_text.lower()
@@ -24,6 +28,10 @@ def is_content_safe(prompt_text):
         if word in text_lower:
             return False
     return True
+
+@app.route('/')
+def home():
+    return "VELTRIX Backend Server ishlayapti! 🚀"
 
 @app.route('/api/generate-bot', methods=['POST'])
 def generate_bot():
@@ -49,9 +57,9 @@ def generate_bot():
         Talablar:
         1. Faqat ishga tushishga tayyor, to'liq va xatosiz Python kodini qaytaring.
         2. Kodni ```python ... ``` bloklari ichiga yozing.
-        3. Agar foydalanuvchi Telegram Mini App so'ragan bo'lsa, WebAppInfo tugmalarini qo'shing.
+        3. Agar foydalanuvchi Telegram Mini App so'ragan bo'lsa, WebAppInfo va mos inline tugmalarni qo'shing.
         4. Agar oddiy tugmali (Inline/Reply) so'ragan bo'lsa, mos tugmalarni yarating.
-        5. Kod oxirida botni ishga tushirish uchun asyncio.run(dp.start_polling(bot)) yoki shunga o'xshash aiogram v3 ishga tushirish qismi bo'lsin.
+        5. Kod oxirida botni ishga tushirish uchun asyncio.run(dp.start_polling(bot)) yoki shunga o'xshash aiogram v3 ishga tushirish qismi bo'lsin. Tokenni kodga to'g'ridan-to'g'ri matn ko'rinishida yozing.
         """
 
         model = genai.GenerativeModel('gemini-1.5-flash')
