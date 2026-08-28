@@ -4,8 +4,15 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
-# Barcha domenlardan keladigan so'rovlarga ruxsat berish
 CORS(app, resources={r"/*": {"origins": "*"}})
+
+# Har bir javobga CORS sarlavhalarini majburiy qo'shish
+@app.after_request
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
+    return response
 
 chat_histories = {}
 user_stats = {"total_requests": 0, "active_users": set(), "created_apps": 0}
@@ -37,7 +44,10 @@ def deploy_bot():
         chat_histories[user_email].append({"prompt": prompt, "token": bot_token})
 
         api_key = os.environ.get("GEMINI_API_KEY")
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+        if not api_key:
+            return jsonify({"status": "error", "error": "Serverda GEMINI_API_KEY topilmadi! Render muhitini tekshiring."}), 500
+
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
         
         payload = {
             "contents": [{
@@ -60,7 +70,7 @@ def deploy_bot():
         if "candidates" in res_data:
             ai_text = res_data["candidates"][0]["content"]["parts"][0]["text"]
         else:
-            ai_text = f"Javob olishda xatolik: {res_data}"
+            ai_text = f"Gemini API xatoligi: {res_data}"
 
         app_url = f"https://veltrix.ai/preview/{user_stats['created_apps']}"
 
@@ -71,7 +81,7 @@ def deploy_bot():
         })
 
     except Exception as e:
-        return jsonify({"status": "error", "error": str(e)}), 500
+        return jsonify({"status": "error", "error": f"Server ichki xatoligi: {str(e)}"}), 500
 
 @app.route('/stats', methods=['GET', 'OPTIONS'])
 def get_stats():
