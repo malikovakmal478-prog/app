@@ -5,7 +5,8 @@ from flask_cors import CORS
 import google.generativeai as genai
 
 app = Flask(__name__)
-CORS(app)  # Frontend (GitHub Pages) dan so'rov kelishiga ruxsat berish uchun
+# CORS orqali barcha manbalardan keladigan so'rovlarga ruxsat berish
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Gemini API kalitini sozlash (Render muhit o'zgaruvchisidan olinadi)
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
@@ -14,9 +15,16 @@ genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 active_bots = {}
 
 
-@app.route("/create-bot", methods=["POST"])
-def create_bot():
+@app.route("/deploy-bot", methods=["POST", "OPTIONS"])
+def deploy_bot():
+  # CORS preflight so'rovlari uchun
+  if request.method == "OPTIONS":
+    return jsonify({"status": "ok"}), 200
+
   data = request.json
+  if not data:
+    return jsonify({"error": "Ma'lumot topilmadi!"}), 400
+
   bot_token = data.get("token")
   user_prompt = data.get("prompt")
 
@@ -42,7 +50,7 @@ def create_bot():
   )
 
   try:
-    # Gemini modelini chaqirish (gemini-1.5-flash yoki gemini-pro)
+    # Gemini modelini chaqirish
     model = genai.GenerativeModel("gemini-1.5-flash")
     response = model.generate_content(full_prompt)
     bot_code = response.text.strip()
@@ -59,7 +67,7 @@ def create_bot():
           400,
       )
 
-    # Kodni tozalash (agar model qo'shimcha markdown belgilari qo'shgan bo'lsa)
+    # Kodni tozalash (markdown belgilaridan xoli qilish)
     if bot_code.startswith("```python"):
       bot_code = bot_code[9:]
     if bot_code.startswith("```"):
