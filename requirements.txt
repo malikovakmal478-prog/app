@@ -1,3 +1,4 @@
 Flask
-pyTelegramBotAPI
-gunicorn
+flask-cors
+google-generativeai
+aiogram
