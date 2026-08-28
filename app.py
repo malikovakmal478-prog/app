@@ -1,6 +1,5 @@
 import os
 import subprocess
-import threading
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import google.generativeai as genai
@@ -8,15 +7,16 @@ import google.generativeai as genai
 app = Flask(__name__)
 CORS(app)
 
-# Gemini API ni sozlash (Render muhit o'zgaruvchisidan olinadi)
+# Gemini API ni sozlash
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-genai.configure(api_key=GEMINI_API_KEY)
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
 
-# Ishlayotgan bot jarayonlarini saqlash uchun lug'at
+# Ishlayotgan bot jarayonlarini saqlash uchun
 running_bots = {}
 
-# Taqiqlangan mavzularni tekshirish uchun oddiy filtr
-FORBIDDEN_KEYWORDS = ["porn", "sex", "nsfw", "betting", "casino", "gambling", "scam", "hack", "malware", "suicide"]
+# Taqiqlangan mavzularni tekshirish uchun filtr
+FORBIDDEN_KEYWORDS = ["porn", "sex", "nsfw", "betting", "casino", "gambling", "scam", "hack", "malware", "suicide", "porno", "qimor"]
 
 def is_content_safe(prompt_text):
     text_lower = prompt_text.lower()
@@ -34,23 +34,24 @@ def generate_bot():
     if not bot_token or not user_prompt:
         return jsonify({"error": "Token va bot talabi kiritilishi shart!"}), 400
 
-    # Xavfsizlik tekshiruvi
     if not is_content_safe(user_prompt):
         return jsonify({"error": "Kechirasiz, bu turdagi (uyatsiz, buzg'unchi yoki noqonuniy) botlarni yaratish taqiqlangan!"}), 400
 
+    if not GEMINI_API_KEY:
+        return jsonify({"error": "Serverda GEMINI_API_KEY sozlanmagan!"}), 500
+
     try:
-        # Gemini orqali Python bot kodini generatsiya qilish
         generation_prompt = f"""
-        Siz professional Telegram bot yaratuvchisiz (aiogram v3 kutubxonasidan foydalaning).
+        Siz professional Telegram bot yaratuvchisiz. aiogram v3 kutubxonasidan foydalanib to'liq ishlaydigan Python kodi yozing.
         Foydalanuvchi talabi: {user_prompt}
         Bot tokeni: {bot_token}
         
         Talablar:
-        1. Faqat ishga tushishga tayyor, to'liq Python kodini qaytaring.
+        1. Faqat ishga tushishga tayyor, to'liq va xatosiz Python kodini qaytaring.
         2. Kodni ```python ... ``` bloklari ichiga yozing.
         3. Agar foydalanuvchi Telegram Mini App so'ragan bo'lsa, WebAppInfo tugmalarini qo'shing.
         4. Agar oddiy tugmali (Inline/Reply) so'ragan bo'lsa, mos tugmalarni yarating.
-        5. Kod hech qanday qo'shimcha tushuntirishlarsiz, faqat Python kodi bo'lsin.
+        5. Kod oxirida botni ishga tushirish uchun asyncio.run(dp.start_polling(bot)) yoki shunga o'xshash aiogram v3 ishga tushirish qismi bo'lsin.
         """
 
         model = genai.GenerativeModel('gemini-1.5-flash')
@@ -69,6 +70,13 @@ def generate_bot():
         bot_filename = f"bot_{abs(hash(bot_token))}.py"
         with open(bot_filename, "w", encoding="utf-8") as f:
             f.write(code)
+
+        # Eski jarayon ishlayotgan bo'lsa, uni to'xtatish
+        if bot_token in running_bots:
+            try:
+                running_bots[bot_token]["process"].terminate()
+            except Exception:
+                pass
 
         # Botni fonda subprocess orqali ishga tushirish
         process = subprocess.Popen(["python", bot_filename])
@@ -89,15 +97,20 @@ def run_custom_code():
         return jsonify({"error": "Token va kod kiritilishi shart!"}), 400
 
     try:
-        # Foydalanuvchi o'zi yozgan kodni saqlash va ishga tushirish
         bot_filename = f"custom_bot_{abs(hash(bot_token))}.py"
         with open(bot_filename, "w", encoding="utf-8") as f:
             f.write(custom_code)
 
+        if bot_token in running_bots:
+            try:
+                running_bots[bot_token]["process"].terminate()
+            except Exception:
+                pass
+
         process = subprocess.Popen(["python", bot_filename])
         running_bots[bot_token] = {"process": process, "file": bot_filename}
 
-        return jsonify({"success": True, "message": "Sizning kodingiz bo'yicha bot ishga tushirildi!"})
+        return jsonify({"success": True, "message": "Sizning kodingiz asosida bot ishga tushirildi!"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
