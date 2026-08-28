@@ -1,5 +1,6 @@
 import os
 import subprocess
+import traceback
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import google.generativeai as genai
@@ -93,6 +94,7 @@ def generate_bot():
         return jsonify({"success": True, "message": "Bot muvaffaqiyatli yaratildi va 24/7 rejimida ishga tushirildi!"})
 
     except Exception as e:
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/run-custom-code', methods=['POST'])
@@ -120,6 +122,7 @@ def run_custom_code():
 
         return jsonify({"success": True, "message": "Sizning kodingiz asosida bot ishga tushirildi!"})
     except Exception as e:
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
