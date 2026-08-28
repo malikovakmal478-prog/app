@@ -148,11 +148,12 @@
                 });
 
                 const data = await response.json();
-                if (data.status === 'success') {
+                if (response.ok && data.status === 'success') {
                     statusText.innerText = data.message;
-                    appLink.href = data.app_url;
-                    appLink.classList.remove('hidden');
-
+                    if (data.app_url) {
+                        appLink.href = data.app_url;
+                        appLink.classList.remove('hidden');
+                    }
                     if (data.image_url) {
                         imgElement.src = data.image_url;
                         imgContainer.classList.remove('hidden');
