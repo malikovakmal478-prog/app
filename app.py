@@ -7,15 +7,15 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}} )
+# CORS-ni to'liq ochiq va barcha methodlarga ruxsat berilgan holda sozlash
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
-# Fa ishlab turgan botlar jarayonlarini saqlash uchun lug'at
 active_bots = {}
 
 @app.after_request
 def add_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-Requested-With'
     response.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
     return response
 
@@ -36,18 +36,19 @@ def init_db():
 
 init_db()
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def home():
-    return "VELTRIX Ultimate Bot Engine is Online! 🚀", 200
+    return "VELTRIX Ultimate Bot Engine is 100% Online! 🚀", 200
 
-# Botni yaratish va darhol serverda 24/7 ishga tushirish
-@app.route('/deploy-bot', methods=['POST', 'OPTIONS'])
+# OPTIONS so'rovlarini to'g'ridan-to'g'ri ushlash (CORSpreflight uchun)
+@app.route('/deploy-bot', methods=['OPTIONS'])
+def deploy_bot_options():
+    return jsonify({}), 200
+
+@app.route('/deploy-bot', methods=['POST'])
 def deploy_bot():
-    if request.method == 'OPTIONS':
-        return jsonify({}), 200
-        
     try:
-        data = request.json or {}
+        data = request.get_json(silent=True) or {}
         prompt = data.get('prompt', '')
         bot_token = data.get('token', '')
         
@@ -58,13 +59,13 @@ def deploy_bot():
         if not api_key:
             return jsonify({"status": "error", "error": "Serverda GEMINI_API_KEY topilmadi!"}), 500
 
-        # Gemini orqali faqat Python ishga tushiradigan to'liq bot kodini generatsiya qilish
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+        # Gemini API orqali to'g'ri model (gemini-1.5-flash) orqali kod generatsiya qilish
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
         
         system_instruction = (
-            "Siz professional dasturchisiz. Foydalanuvchi bergan token va talab (tugmali bot, Mini App yoki oddiy bot) asosida "
-            "faqatgina ishga tushirishga tayyor, bitta faylga sig'adigan to'liq Python (aiogram yoki telebot) kodini yozib berasiz. "
-            "Javobda faqat Python kodini ```python va ``` teglari orasiga yozing, ortiqcha matn yozmang."
+            "Siz professional dasturchisiz. Foydalanuvchi bergan token va talab asosida "
+            "faqatgina ishga tushirishga tayyor, bitta faylga sig'adigan to'liq Python (telebot yoki aiogram) kodini yozib berasiz. "
+            "Javobda faqat Python kodini ```python va ``` teglari orasiga yozing, ortiqcha gap yozmang."
         )
         
         payload = {
@@ -83,7 +84,6 @@ def deploy_bot():
         if "candidates" in res_data:
             ai_raw_text = res_data["candidates"][0]["content"]["parts"][0]["text"]
             
-            # Kodni ajratib olish
             if "```python" in ai_raw_text:
                 bot_code = ai_raw_text.split("```python")[1].split("```")[0].strip()
             elif "```" in ai_raw_text:
@@ -91,23 +91,19 @@ def deploy_bot():
             else:
                 bot_code = ai_raw_text
                 
-            # Tokenni kod ichiga majburiy joylash (agar AI unutgan bo'lsa)
             if bot_token not in bot_code:
                 bot_code = f"TOKEN = '{bot_token}'\n" + bot_code
 
-            # Har bir bot uchun alohida fayl yaratish
             bot_file_name = f"bot_{bot_token[:10]}.py"
             with open(bot_file_name, "w", encoding="utf-8") as f:
                 f.write(bot_code)
 
-            # Agar bu bot oldin yurgizilgan bo'lsa, uni to'xtatish
             if bot_token in active_bots:
                 try:
                     active_bots[bot_token].terminate()
                 except:
                     pass
 
-            # Botni fonda (24/7) ishga tushirish
             process = subprocess.Popen(["python", bot_file_name])
             active_bots[bot_token] = process
 
@@ -117,12 +113,11 @@ def deploy_bot():
                 "code": bot_code
             })
         else:
-            return jsonify({"status": "error", "error": "AI kod tuzolmadi."}), 500
+            return jsonify({"status": "error", "error": f"AI xatolik qaytardi: {res_data}"}), 500
 
     except Exception as e:
-        return jsonify({"status": "error", "error": f"Xatolik: {str(e)}"}), 500
+        return jsonify({"status": "error", "error": f"Server xatoligi: {str(e)}"}), 500
 
-# Ishlayotgan botlar holatini ko'rish
 @app.route('/system/stats', methods=['GET'])
 def system_stats():
     return jsonify({
