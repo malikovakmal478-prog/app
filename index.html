@@ -2,16 +2,20 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VELTRIX - AI Bot Builder</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #0f172a; color: #f8fafc; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-        h2, h3 { color: #38bdf8; }
-        input, textarea, select { width: 100%; padding: 12px; margin: 10px 0; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; }
-        button { background: #38bdf8; color: #0f172a; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
+        .container { max-width: 650px; margin: 40px auto; background: #1e293b; padding: 35px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+        h2 { text-align: center; color: #38bdf8; margin-bottom: 25px; }
+        h3 { color: #38bdf8; font-size: 1.1rem; margin-top: 0; }
+        label { display: block; margin-top: 15px; font-size: 0.9rem; color: #94a3b8; }
+        input, textarea { width: 100%; padding: 14px; margin-top: 5px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; box-sizing: border-box; font-size: 0.95rem; }
+        input:focus, textarea:focus { outline: none; border-color: #38bdf8; }
+        button { background: #38bdf8; color: #0f172a; padding: 14px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 18px; font-size: 1rem; transition: background 0.2s; }
         button:hover { background: #0ea5e9; }
-        .section { margin-top: 30px; border-top: 1px solid #334155; padding-top: 20px; }
-        #status { margin-top: 15px; font-weight: bold; }
+        .section { margin-top: 35px; border-top: 1px solid #334155; padding-top: 25px; }
+        #status { margin-top: 20px; font-weight: bold; text-align: center; padding: 10px; border-radius: 6px; }
     </style>
 </head>
 <body>
@@ -21,17 +25,25 @@
     
     <!-- AI Orqali Bot Yaratish -->
     <div>
-        <h3>AI Yordamida Bot Yaratish</h3>
-        <input type="text" id="aiToken" placeholder="Telegram Bot Tokeningiz (BotFather'dan)">
-        <textarea id="aiPrompt" rows="4" placeholder="Bot qanday ish qilsin? Masalan: Mini App ochadigan tugmasi bo'lsin va ob-havoni ko'rsatsin..."></textarea>
+        <h3>🤖 AI Yordamida Bot Yaratish</h3>
+        <label>Telegram Bot Tokeni</label>
+        <input type="text" id="aiToken" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ">
+        
+        <label>Bot Talabi (Mini App, Tugmalar, murakkab mantiq...)</label>
+        <textarea id="aiPrompt" rows="4" placeholder="Masalan: /start bosganda WebApp (Mini App) ochadigan tugmasi va inline menyusi bo'lsin..."></textarea>
+        
         <button onclick="generateAIBot()">AI orqali Yaratish va Ishga tushirish</button>
     </div>
 
     <!-- Shaxsiy Kod Kiritish Bo'limi -->
     <div class="section">
-        <h3>Shaxsiy Kod Orqali Ishga tushirish</h3>
-        <input type="text" id="customToken" placeholder="Telegram Bot Tokeningiz">
-        <textarea id="customCode" rows="6" placeholder="Python kodingizni shu yerga yozing..."></textarea>
+        <h3>💻 Shaxsiy Kod Orqali Ishga tushirish</h3>
+        <label>Telegram Bot Tokeni</label>
+        <input type="text" id="customToken" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ">
+        
+        <label>Python Kodingiz (aiogram v3)</label>
+        <textarea id="customCode" rows="6" placeholder="import asyncio... o'z kodingizni shu yerga yozing..."></textarea>
+        
         <button onclick="runCustomBot()">Kodni Ishga tushirish</button>
     </div>
 
@@ -39,15 +51,21 @@
 </div>
 
 <script>
-    const BACKEND_URL = "https://sizning-render-serveringiz.onrender.com"; // Renderdagi URL manzilingizni yozing
+    // DIQQAT: Render dagi veb-ilovangiz havolasini bu yerga yozing (oxirida / belgisi bo'lmasin)
+    const BACKEND_URL = "https://malikovakmal478-prog.github.io/app/";
 
     async function generateAIBot() {
-        const token = document.getElementById('aiToken').value;
-        const prompt = document.getElementById('aiPrompt').value;
+        const token = document.getElementById('aiToken').value.trim();
+        const prompt = document.getElementById('aiPrompt').value.trim();
         const status = document.getElementById('status');
 
+        if(!token || !prompt) {
+            alert("Iltimos, token va bot talabini kiriting!");
+            return;
+        }
+
         status.style.color = "#38bdf8";
-        status.innerText = "Bot generatsiya qilinmoqda va ishga tushirilmoqda, iltimos kuting...";
+        status.innerText = "⏳ Bot generatsiya qilinmoqda va ishga tushirilmoqda, biroz kuting...";
 
         try {
             let response = await fetch(`${BACKEND_URL}/api/generate-bot`, {
@@ -59,24 +77,29 @@
             
             if (response.ok) {
                 status.style.color = "#4ade80";
-                status.innerText = result.message;
+                status.innerText = "✅ " + result.message;
             } else {
                 status.style.color = "#f87171";
-                status.innerText = "Xatolik: " + result.error;
+                status.innerText = "❌ Xatolik: " + result.error;
             }
         } catch (err) {
             status.style.color = "#f87171";
-            status.innerText = "Server bilan aloqa o'rnatib bo'lmadi: " + err;
+            status.innerText = "❌ Server bilan aloqa o'rnatib bo'lmadi. CORS yoki URL manzilni tekshiring.";
         }
     }
 
     async function runCustomBot() {
-        const token = document.getElementById('customToken').value;
-        const code = document.getElementById('customCode').value;
+        const token = document.getElementById('customToken').value.trim();
+        const code = document.getElementById('customCode').value.trim();
         const status = document.getElementById('status');
 
+        if(!token || !code) {
+            alert("Iltimos, token va kodni kiriting!");
+            return;
+        }
+
         status.style.color = "#38bdf8";
-        status.innerText = "Kod tekshirilmoqda va bot ishga tushirilmoqda...";
+        status.innerText = "⏳ Kod tekshirilmoqda va bot ishga tushirilmoqda...";
 
         try {
             let response = await fetch(`${BACKEND_URL}/api/run-custom-code`, {
@@ -88,14 +111,14 @@
             
             if (response.ok) {
                 status.style.color = "#4ade80";
-                status.innerText = result.message;
+                status.innerText = "✅ " + result.message;
             } else {
                 status.style.color = "#f87171";
-                status.innerText = "Xatolik: " + result.error;
+                status.innerText = "❌ Xatolik: " + result.error;
             }
         } catch (err) {
             status.style.color = "#f87171";
-            status.innerText = "Server bilan aloqa o'rnatib bo'lmadi: " + err;
+            status.innerText = "❌ Server bilan aloqa o'rnatib bo'lmadi.";
         }
     }
 </script>
