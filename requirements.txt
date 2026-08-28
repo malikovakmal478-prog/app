@@ -1,5 +1,6 @@
 Flask
 flask-cors
-google-generativeai
-aiogram
 gunicorn
+google-generativeai
+pyTelegramBotAPI
+requests
