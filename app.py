@@ -35,8 +35,8 @@ def deploy_bot():
         if not api_key:
             return jsonify({"status": "error", "error": "GEMINI_API_KEY topilmadi!"}), 500
 
-        # Bir nechta modellarni navbat bilan sinash (biri ishlamasa boshqasiga o'tadi)
-        models_to_try = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"]
+        # Hozirgi kunda v1beta orqali ishlaydigan tasdiqlangan modellar
+        models_to_try = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"]
         ai_text = None
         last_error = None
 
@@ -45,7 +45,7 @@ def deploy_bot():
                 "parts": [{
                     "text": (
                         "Siz VELTRIX AI platformasisiz. "
-                        "Foydalanuvchiga Telegram bot yoki veb-sayt yaratishda mukammal kod bering. "
+                        "Foydalanuvchiga Telegram bot yoki veb-sayt yaratishda mukammal kod va ko'rsatmalar bering. "
                         f"Buyruq: {prompt}"
                     )
                 }]
@@ -69,7 +69,7 @@ def deploy_bot():
                 continue
 
         if not ai_text:
-            ai_text = f"Barcha modellar sinaldi, lekin javob olinmadi. Xato: {last_error}"
+            return jsonify({"status": "error", "error": f"AI javob bermadi. Tafsilot: {last_error}"}), 500
 
         return jsonify({
             "status": "success",
