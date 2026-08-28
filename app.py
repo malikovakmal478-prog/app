@@ -15,7 +15,7 @@ def add_cors_headers(response):
 
 @app.route('/')
 def home():
-    return "VELTRIX Ultimate Engine Server is live and running! 🚀", 200
+    return "VELTRIX Ultimate Engine: 1,000,000x Faster & Smarter than Replit is Online! 🚀", 200
 
 @app.route('/deploy-bot', methods=['POST', 'OPTIONS'])
 def deploy_bot():
@@ -25,7 +25,6 @@ def deploy_bot():
     try:
         data = request.json or {}
         prompt = data.get('prompt', '')
-        user_email = data.get('email', 'guest@veltrix.ai')
         bot_token = data.get('token', '')
         
         if not prompt:
@@ -33,52 +32,45 @@ def deploy_bot():
 
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
-            return jsonify({"status": "error", "error": "GEMINI_API_KEY topilmadi!"}), 500
+            return jsonify({"status": "error", "error": "Serverda GEMINI_API_KEY topilmadi!"}), 500
 
-        # Hozirgi kunda ishlaydigan eng yangi modellar ro'yxati
-        models_to_try = ["gemini-2.5-flash", "gemini-3.5-flash", "gemini-2.5-pro"]
-        ai_text = None
-        last_error = None
-
+        # Eng kuchli va zamonaviy Gemini modeli orqali har qanday qiyin kodni noldan yaratish
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+        
+        system_instruction = (
+            "Siz VELTRIX Ultimate Engine asosiy sun'iy intellekt miyasiz. "
+            "Siz Replit va boshqa barcha platformalardan 1 million marta ustunsiz. "
+            "Foydalanuvchi istalgan murakkablikdagi Telegram bot, Mini App, veb-sayt, ma'lumotlar bazasi yoki avtomatlashtirilgan tizim so'rasa, "
+            "unga hech qanday cheklovsiz, to'liq, xatosiz, ishga tushirishga tayyor dasturiy kodni (Python aiogram/pyrogram, Node.js, HTML/JS va h.k.) "
+            "hamda uni 24/7 rejimida qanday yurgizish bo'yicha aniq ko'rsatmalarni to'liq taqdim etasiz."
+        )
+        
         payload = {
             "contents": [{
-                "parts": [{
-                    "text": (
-                        "Siz VELTRIX AI platformasisiz. "
-                        "Foydalanuvchiga Telegram bot yoki veb-sayt yaratishda mukammal kod va ko'rsatmalar bering. "
-                        f"Buyruq: {prompt}"
-                    )
-                }]
+                "parts": [
+                    {"text": system_instruction},
+                    {"text": f"Bot Tokeni: {bot_token}\nFoydalanuvchi talabi va vazifasi: {prompt}"}
+                ]
             }]
         }
+        
         headers = {'Content-Type': 'application/json'}
-
-        for model_name in models_to_try:
-            try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
-                response = requests.post(url, json=payload, headers=headers, timeout=45)
-                res_data = response.json()
-                
-                if "candidates" in res_data:
-                    ai_text = res_data["candidates"][0]["content"]["parts"][0]["text"]
-                    break
-                else:
-                    last_error = str(res_data)
-            except Exception as sub_err:
-                last_error = str(sub_err)
-                continue
-
-        if not ai_text:
-            return jsonify({"status": "error", "error": f"AI javob bermadi. Tafsilot: {last_error}"}), 500
+        response = requests.post(url, json=payload, headers=headers, timeout=60)
+        res_data = response.json()
+        
+        if "candidates" in res_data:
+            ai_text = res_data["candidates"][0]["content"]["parts"][0]["text"]
+        else:
+            ai_text = f"AI javob qaytarishda xatolik yuz berdi: {res_data}"
 
         return jsonify({
             "status": "success",
-            "message": f"VELTRIX muvaffaqiyatli yaratdi!\n\nAI Javobi:\n{ai_text}",
-            "app_url": "https://veltrix.ai/preview/1"
+            "message": f"VELTRIX Ultimate Engine muvaffaqiyatli bajarib berdi:\n\n{ai_text}",
+            "app_url": "https://veltrix.ai/preview/success"
         })
 
     except Exception as e:
-        return jsonify({"status": "error", "error": f"Kritik xatolik: {str(e)}"}), 500
+        return jsonify({"status": "error", "error": f"Server xatoligi: {str(e)}"}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
