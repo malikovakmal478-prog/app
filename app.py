@@ -7,7 +7,6 @@ import google.generativeai as genai
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# Gemini API kalitini sozlash
 api_key = os.environ.get("GEMINI_API_KEY")
 if api_key:
   genai.configure(api_key=api_key)
@@ -46,8 +45,8 @@ def generate_bot():
   )
 
   try:
-    # Eng so'nggi SDK bilan mos keladigan model nomi
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    # Eski va barqaror ishlaydigan 'gemini-pro' modeliga o'tkazamiz
+    model = genai.GenerativeModel("gemini-pro")
     response = model.generate_content(generation_prompt)
     bot_code = response.text.strip()
 
@@ -82,6 +81,7 @@ def generate_bot():
     })
 
   except Exception as e:
+    print("XATOLIK:", str(e))  # Render loglarida ko'rinishi uchun
     return jsonify({"error": f"AI xatoligi: {str(e)}"}), 500
 
 
