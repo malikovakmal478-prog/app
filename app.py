@@ -33,8 +33,8 @@ def deploy_bot():
         chat_histories[user_email].append({"prompt": prompt, "token": bot_token})
 
         api_key = os.environ.get("GEMINI_API_KEY")
-        # Eng so'nggi barqaror model versiyasi (gemini-3.6-flash)
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={api_key}"
+        # Universal va o'zgarmas model manzili
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash:generateContent?key={api_key}"
         
         payload = {
             "contents": [{
