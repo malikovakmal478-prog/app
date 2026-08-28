@@ -1,130 +1,89 @@
 import os
 import subprocess
-import traceback
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import google.generativeai as genai
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
-# Gemini API ni sozlash
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
+# Gemini API kalitini sozlash
+api_key = os.environ.get("GEMINI_API_KEY")
+if api_key:
+  genai.configure(api_key=api_key)
 
-# Ishlayotgan bot jarayonlarini saqlash uchun
-running_bots = {}
+active_bots = {}
 
-# Taqiqlangan mavzularni tekshirish uchun filtr
-FORBIDDEN_KEYWORDS = [
-    "porn", "sex", "nsfw", "betting", "casino", "gambling", 
-    "scam", "hack", "malware", "suicide", "porno", "qimor", 
-    "seks", "aldash", "feyk"
-]
 
-def is_content_safe(prompt_text):
-    text_lower = prompt_text.lower()
-    for word in FORBIDDEN_KEYWORDS:
-        if word in text_lower:
-            return False
-    return True
-
-@app.route('/')
-def home():
-    return "VELTRIX Backend Server ishlayapti! 🚀"
-
-@app.route('/api/generate-bot', methods=['POST'])
+@app.route("/api/generate-bot", methods=["POST", "OPTIONS"])
 def generate_bot():
-    data = request.json
-    bot_token = data.get('token')
-    user_prompt = data.get('prompt')
-    
-    if not bot_token or not user_prompt:
-        return jsonify({"error": "Token va bot talabi kiritilishi shart!"}), 400
+  if request.method == "OPTIONS":
+    return jsonify({"status": "ok"}), 200
 
-    if not is_content_safe(user_prompt):
-        return jsonify({"error": "Kechirasiz, bu turdagi (uyatsiz, buzg'unchi yoki noqonuniy) botlarni yaratish taqiqlangan!"}), 400
+  data = request.json
+  if not data:
+    return jsonify({"error": "Ma'lumot topilmadi!"}), 400
 
-    if not GEMINI_API_KEY:
-        return jsonify({"error": "Serverda GEMINI_API_KEY sozlanmagan!"}), 500
+  bot_token = data.get("token")
+  user_prompt = data.get("prompt")
 
-    try:
-        generation_prompt = f"""
-        Siz professional Telegram bot yaratuvchisiz. aiogram v3 kutubxonasidan foydalanib to'liq ishlaydigan Python kodi yozing.
-        Foydalanuvchi talabi: {user_prompt}
-        Bot tokeni: {bot_token}
-        
-        Talablar:
-        1. Faqat ishga tushishga tayyor, to'liq va xatosiz Python kodini qaytaring.
-        2. Kodni ```python ... ``` bloklari ichiga yozing.
-        3. Agar foydalanuvchi Telegram Mini App so'ragan bo'lsa, WebAppInfo va mos inline tugmalarni qo'shing.
-        4. Agar oddiy tugmali (Inline/Reply) so'ragan bo'lsa, mos tugmalarni yarating.
-        5. Kod oxirida botni ishga tushirish uchun asyncio.run(dp.start_polling(bot)) yoki shunga o'xshash aiogram v3 ishga tushirish qismi bo'lsin. Tokenni kodga to'g'ridan-to'g'ri matn ko'rinishida yozing.
-        """
+  if not bot_token or not user_prompt:
+    return (
+        jsonify({"error": "Telegram bot tokeni va talab kiritilishi shart!"}),
+        400,
+    )
 
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        response = model.generate_content(generation_prompt)
-        raw_code = response.text
+  safety_system_instruction = """
+    Sen professional Telegram bot dasturchisan. 
+    Faqat 'telebot' yoki 'aiogram' kutubxonasi yordamida ishlaydigan Python kod yoz.
+    Bot tokenini kodga quyidagicha kirit: TOKEN = '<BOT_TOKEN>'
+    Faqat toza Python kodining o'zini qaytar (markdown formatlash belgilarisiz, ```python ... ``` ishlatmasdan).
+    """
 
-        # Markdown bloklaridan kodni ajratib olish
-        if "```python" in raw_code:
-            code = raw_code.split("```python")[1].split("```")[0].strip()
-        elif "```" in raw_code:
-            code = raw_code.split("```")[1].split("```")[0].strip()
-        else:
-            code = raw_code.strip()
+  generation_prompt = (
+      f"{safety_system_instruction}\n\nTalab: {user_prompt}\nToken:"
+      f" {bot_token}"
+  )
 
-        # Bot uchun alohida fayl yaratish
-        bot_filename = f"bot_{abs(hash(bot_token))}.py"
-        with open(bot_filename, "w", encoding="utf-8") as f:
-            f.write(code)
+  try:
+    # Eng so'nggi SDK bilan mos keladigan model nomi
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    response = model.generate_content(generation_prompt)
+    bot_code = response.text.strip()
 
-        # Eski jarayon ishlayotgan bo'lsa, uni to'xtatish
-        if bot_token in running_bots:
-            try:
-                running_bots[bot_token]["process"].terminate()
-            except Exception:
-                pass
+    if bot_code.startswith("```python"):
+      bot_code = bot_code[9:]
+    if bot_code.startswith("```"):
+      bot_code = bot_code[3:]
+    if bot_code.endswith("```"):
+      bot_code = bot_code[:-3]
 
-        # Botni fonda subprocess orqali ishga tushirish
-        process = subprocess.Popen(["python", bot_filename])
-        running_bots[bot_token] = {"process": process, "file": bot_filename}
+    bot_id = abs(hash(bot_token))
+    file_name = f"bot_{bot_id}.py"
 
-        return jsonify({"success": True, "message": "Bot muvaffaqiyatli yaratildi va 24/7 rejimida ishga tushirildi!"})
+    with open(file_name, "w", encoding="utf-8") as f:
+      f.write(bot_code)
 
-    except Exception as e:
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
+    if bot_token in active_bots:
+      try:
+        active_bots[bot_token].terminate()
+      except Exception:
+        pass
 
-@app.route('/api/run-custom-code', methods=['POST'])
-def run_custom_code():
-    data = request.json
-    bot_token = data.get('token')
-    custom_code = data.get('code')
-    
-    if not bot_token or not custom_code:
-        return jsonify({"error": "Token va kod kiritilishi shart!"}), 400
+    process = subprocess.Popen(
+        ["python", file_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    active_bots[bot_token] = process
 
-    try:
-        bot_filename = f"custom_bot_{abs(hash(bot_token))}.py"
-        with open(bot_filename, "w", encoding="utf-8") as f:
-            f.write(custom_code)
+    return jsonify({
+        "status": "success",
+        "message": "Bot muvaffaqiyatli yaratildi va ishga tushirildi!",
+        "pid": process.pid,
+    })
 
-        if bot_token in running_bots:
-            try:
-                running_bots[bot_token]["process"].terminate()
-            except Exception:
-                pass
+  except Exception as e:
+    return jsonify({"error": f"AI xatoligi: {str(e)}"}), 500
 
-        process = subprocess.Popen(["python", bot_filename])
-        running_bots[bot_token] = {"process": process, "file": bot_filename}
 
-        return jsonify({"success": True, "message": "Sizning kodingiz asosida bot ishga tushirildi!"})
-    except Exception as e:
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
-
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+if __name__ == "__main__":
+  app.run(host="0.0.0.0", port=5000)
