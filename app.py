@@ -35,8 +35,8 @@ def deploy_bot():
         if not api_key:
             return jsonify({"status": "error", "error": "GEMINI_API_KEY topilmadi!"}), 500
 
-        # Hozirgi kunda v1beta orqali ishlaydigan tasdiqlangan modellar
-        models_to_try = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"]
+        # Hozirgi kunda ishlaydigan eng yangi modellar ro'yxati
+        models_to_try = ["gemini-2.5-flash", "gemini-3.5-flash", "gemini-2.5-pro"]
         ai_text = None
         last_error = None
 
