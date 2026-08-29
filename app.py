@@ -1,76 +1,161 @@
 import os
-import subprocess
-import sys
-from flask import Flask, jsonify, request
-from flask_cors import CORS
-import google.generativeai as genai
+import json
+import re
+import sqlite3
+import threading
+from flask import Flask, request, jsonify, make_response
+from google import genai
+from google.genai import types
+import telebot
 
 app = Flask(__name__)
-CORS(
-    app,
-    resources={
-        r"/*": {
-            "origins": "*",
-            "methods": ["GET", "POST", "OPTIONS"],
-            "allow_headers": ["Content-Type", "Authorization"],
-        }
-    },
-)
 
-api_key = os.environ.get("GEMINI_API_KEY")
-if api_key:
-  genai.configure(api_key=api_key)
+# Barcha so'rovlar uchun majburiy CORS headers qo'shish
+@app.after_request
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    return response
 
-active_bots = {}
+client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
+DB_FILE = "platform_database.db"
 
-@app.route("/", methods=["GET"])
-def home():
-  return jsonify({"status": "VELTRIX Backend 24/7 is active!"})
+def init_db():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS bots (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_email TEXT,
+            bot_token TEXT UNIQUE,
+            bot_type TEXT,
+            html_content TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
 
+init_db()
 
-@app.route("/api/run-custom-code", methods=["POST", "OPTIONS"])
-def run_custom_code():
-  if request.method == "OPTIONS":
-    return jsonify({"status": "ok"}), 200
+def start_telegram_bot(token, bot_type, app_url=""):
+    try:
+        bot = telebot.TeleBot(token)
 
-  data = request.json or {}
-  bot_token = data.get("token")
-  custom_code = data.get("code")
+        @bot.message_handler(commands=['start'])
+        def send_welcome(message):
+            if bot_type == "miniapp":
+                keyboard = telebot.types.InlineKeyboardMarkup()
+                web_app = telebot.types.WebAppInfo(url=app_url)
+                button = telebot.types.InlineKeyboardButton(text="📱 Mini App-ni ochish", web_app=web_app)
+                keyboard.add(button)
+                bot.reply_to(message, "Salom! AI tomonidan yaratilgan Mini App:", reply_markup=keyboard)
+            else:
+                bot.reply_to(message, "Salom! AI botingiz ishga tushdi!")
 
-  if not bot_token or not custom_code:
-    return jsonify({"error": "Token va python kod kiritilishi shart!"}), 400
+        @bot.message_handler(func=lambda message: True)
+        def echo_all(message):
+            bot.reply_to(message, f"Siz yozdingiz: {message.text}")
 
-  try:
-    bot_id = abs(hash(bot_token))
-    file_name = f"bot_{bot_id}.py"
+        bot.infinity_polling(skip_pending=True)
+    except Exception as e:
+        print(f"Bot error: {e}")
 
-    with open(file_name, "w", encoding="utf-8") as f:
-      f.write(custom_code)
+@app.route('/', methods=['GET'])
+def index():
+    return jsonify({"status": "AI Platform Engine Online"}), 200
 
-    if bot_token in active_bots:
-      try:
-        active_bots[bot_token].terminate()
-      except Exception:
-        pass
+@app.route('/app/<int:bot_id>', methods=['GET'])
+def get_mini_app(bot_id):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT html_content FROM bots WHERE id = ?", (bot_id,))
+    row = cursor.fetchone()
+    conn.close()
 
-    # Xatoliklarni ushlash uchun log fayliga yo'naltiramiz
-    log_file = open(f"log_{bot_id}.txt", "w")
-    process = subprocess.Popen(
-        [sys.executable, file_name],
-        stdout=log_file,
-        stderr=subprocess.STDOUT,
-    )
-    active_bots[bot_token] = process
+    if row and row[0]:
+        return row[0], 200, {'Content-Type': 'text/html; charset=utf-8'}
+    return "Mini App topilmadi!", 404
 
-    return jsonify({
-        "status": "success",
-        "message": "Bot muvaffaqiyatli ishga tushirildi!",
-        "pid": process.pid,
-    })
-  except Exception as e:
-    return jsonify({"error": str(e)}), 500
+@app.route('/deploy-bot', methods=['POST', 'OPTIONS'])
+def deploy_bot():
+    if request.method == 'OPTIONS':
+        response = make_response(jsonify({"status": "OK"}), 200)
+        return response
 
+    try:
+        data = request.get_json() or {}
+        token = data.get('token', '').strip()
+        prompt = data.get('prompt', '').strip()
+        user_email = data.get('email', 'anonymous')
 
-if __name__ == "__main__":
-  app.run(host="0.0.0.0", port=5000)
+        if not token or not prompt:
+            return jsonify({'error': 'Bot Token va Prompt kiritilishi shart!'}), 400
+
+        system_prompt = f"""
+        Siz Telegram Bot va Mini App yaratuvchi professional AI dasturchisiz.
+        Foydalanuvchi so'rovi: "{prompt}"
+
+        Telegram Mini App (Hamster Kombat, Clicker, E-Commerce va h.k.) uchun tayyor HTML, CSS (Tailwind) va JavaScript kodini kiriting.
+        JSON formatida javob qaytaring:
+        {{
+            "type": "miniapp",
+            "html": "...to'liq HTML kodi..."
+        }}
+        """
+
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=system_prompt,
+            config=types.GenerateContentConfig(response_mime_type="application/json")
+        )
+
+        text_response = response.text.strip()
+        if text_response.startswith("```"):
+            text_response = re.sub(r"^```[a-z]*\n?", "", text_response)
+            text_response = re.sub(r"\n?```$", "", text_response)
+
+        result_json = json.loads(text_response)
+        bot_type = result_json.get("type", "miniapp")
+        html_content = result_json.get("html", "<h1>Bot tayyor!</h1>")
+
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO bots (user_email, bot_token, bot_type, html_content)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(bot_token) DO UPDATE SET bot_type=excluded.bot_type, html_content=excluded.html_content
+        ''', (user_email, token, bot_type, html_content))
+        
+        # Olingan id ni olishdan oldin commit qilish xavfsizroq bo'ladi
+        conn.commit()
+        
+        # So'nggi qo'shilgan id ni olish
+        cursor.execute("SELECT id FROM bots WHERE bot_token = ?", (token,))
+        row = cursor.fetchone()
+        bot_id = row[0] if row else 1
+        conn.close()
+
+        server_domain = request.host_url.rstrip('/')
+        mini_app_url = f"{server_domain}/app/{bot_id}"
+
+        bot_thread = threading.Thread(
+            target=start_telegram_bot, 
+            args=(token, bot_type, mini_app_url)
+        )
+        bot_thread.daemon = True
+        bot_thread.start()
+
+        return jsonify({
+            "status": "success",
+            "message": "Bot muvaffaqiyatli yaratildi va ishga tushdi!",
+            "app_url": mini_app_url
+        })
+
+    except Exception as e:
+        return jsonify({'error': f"Tizim xatosi: {str(e)}"}), 500
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
