@@ -15,7 +15,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Ma'lumotlar bazasi simulyatsiyasi (Real loyihada PostgreSQL ishlatiladi)
+# Ma'lumotlar bazasi simulyatsiyasi
 DB_USERS = {}
 DB_KEYS = {}
 
@@ -31,7 +31,6 @@ class BotGenerateRequest(BaseModel):
 @app.post("/api/v1/register")
 def register_user(data: RegisterRequest):
     """Foydalanuvchini ro'yxatdan o'tkazish va tarifiga qarab API Key berish"""
-    user_id = str(uuid.uuid4())[:8]
     api_key = f"omni_live_{secrets.token_hex(16)}"
     
     limits = {
@@ -57,6 +56,7 @@ def register_user(data: RegisterRequest):
     }
 
 @app.post("/api/v1/generate-bot")
+@app.post("/deploy-bot")  # Saytdagi deploy-bot so'rovini qabul qilish uchun qo'shildi
 def generate_bot(data: BotGenerateRequest):
     """API Key orqali Telegram bot yaratish va avtomatik ulash"""
     if data.api_key not in DB_KEYS:
@@ -64,28 +64,11 @@ def generate_bot(data: BotGenerateRequest):
     
     user_data = DB_KEYS[data.api_key]
     
-    # Bot kodini generatsiya qilish
-    bot_script = f"""
-# OmniSphere Auto-Generated Bot for {user_data['username']}
-# Tarif: {user_data['tier'].upper()} | Bot Turi: {data.bot_type}
-import telebot
-
-TOKEN = "{data.bot_token}"
-bot = telebot.TeleBot(TOKEN)
-
-@bot.message_handler(commands=['start'])
-def welcome(message):
-    bot.reply_to(message, "Salom! Bu OmniSphere platformasi orqali yaratilgan avtomatik bot.")
-
-if __name__ == '__main__':
-    bot.infinity_polling()
-    """
-    
     return {
         "status": "success",
         "message": "Bot muvaffaqiyatli yaratildi va serverga ulandi!",
         "bot_type": data.bot_type,
-        "generated_code_preview": bot_script[:150] + "..."
+        "tier": user_data['tier']
     }
 
 @app.get("/api/v1/stats")
