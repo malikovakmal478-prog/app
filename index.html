@@ -2,173 +2,92 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Replit – Build apps in minutes</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>OmniSphere - Global API & Bot Platform</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: #f9f9f8; color: #1c2333; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; }
-        
-        /* Header */
-        header { width: 100%; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e5e7eb; background: #ffffff; }
-        .logo { display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 20px; cursor: pointer; color: #000; text-decoration: none; }
-        nav { display: flex; gap: 20px; font-size: 14px; color: #4b5563; }
-        nav a { text-decoration: none; color: inherit; }
-        nav a:hover { color: #000; }
-        .auth-btns { display: flex; gap: 12px; align-items: center; }
-        .btn-login { background: transparent; border: 1px solid #d1d5db; padding: 6px 16px; border-radius: 20px; font-size: 14px; cursor: pointer; font-weight: 500; }
-        .btn-create { background: #ff5722; color: white; border: none; padding: 8px 18px; border-radius: 20px; font-size: 14px; font-weight: 500; cursor: pointer; }
-
-        /* Main */
-        main { max-width: 800px; margin: 0 auto; width: 100%; padding: 60px 20px; text-align: center; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        h1 { font-size: 52px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; color: #1c1c1c; }
-        p.subtitle { color: #6b7280; font-size: 16px; margin-bottom: 32px; }
-
-        /* Input Container */
-        .prompt-box { width: 100%; max-width: 650px; background: #f2f1ef; border: 1px solid #d1d5db; border-radius: 16px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        textarea { width: 100%; background: transparent; border: none; outline: none; font-size: 16px; color: #1f2937; resize: none; }
-        .prompt-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
-        .icon-btn { width: 32px; height: 32px; border-radius: 50%; border: none; background: transparent; cursor: pointer; color: #6b7280; display: flex; align-items: center; justify-content: center; }
-        .send-btn { width: 36px; height: 36px; border-radius: 50%; border: none; background: #ff5722; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-
-        /* Presets */
-        .presets { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 32px; }
-        .chip { background: #ffffff; border: 1px solid #e5e7eb; padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 500; color: #374151; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .chip:hover { border-color: #d1d5db; }
-
-        /* Modal */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); display: none; align-items: center; justify-content: center; z-index: 100; }
-        .modal { background: white; padding: 24px; border-radius: 16px; width: 100%; max-width: 400px; text-align: left; }
-        .modal input { width: 100%; border: 1px solid #d1d5db; padding: 10px; border-radius: 8px; margin: 12px 0; outline: none; }
-
-        /* Status */
-        #status-box { width: 100%; max-width: 650px; margin-top: 20px; padding: 12px; border-radius: 10px; font-size: 14px; display: none; }
-        .status-loading { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
-        .status-success { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
-        .status-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
-
-        footer { padding: 16px; text-align: center; font-size: 12px; color: #9ca3af; }
+        body { background: #020617; color: #f8fafc; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 800px; background: rgba(15, 23, 42, 0.9); border: 1px solid #38bdf855; border-radius: 16px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        h1 { background: linear-gradient(135deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; }
+        .box { margin-bottom: 20px; }
+        label { display: block; color: #94a3b8; margin-bottom: 8px; }
+        input, select { width: 100%; background: #020617; border: 1px solid #334155; color: white; padding: 12px; border-radius: 8px; margin-bottom: 12px; }
+        button { background: linear-gradient(135deg, #0284c7, #0369a1); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        button:hover { background: #0ea5e9; }
+        .output { background: #020617; border: 1px solid #1e293b; padding: 15px; border-radius: 8px; font-family: monospace; color: #38bdf8; margin-top: 15px; white-space: pre-wrap; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div style="display: flex; align-items: center; gap: 30px;">
-            <a href="#" class="logo">
-                <svg width="28" height="28" viewBox="0 0 32 32" fill="none"><path d="M7 6H15V14H7V6Z" fill="#F26207"/><path d="M15 6H23V14H15V6Z" fill="#F26207"/><path d="M15 14H23V22H15V14Z" fill="#F26207"/><path d="M7 22H15V30H7V22Z" fill="#F26207"/></svg>
-                Replit
-            </a>
-            <nav>
-                <a href="#">Products</a>
-                <a href="#">For Work</a>
-                <a href="#">Resources</a>
-                <a href="#">Pricing</a>
-            </nav>
-        </div>
-        <div class="auth-btns">
-            <button onclick="loginGoogle()" class="btn-login" id="auth-label">Log in</button>
-            <button onclick="loginGoogle()" class="btn-create">Create account</button>
-        </div>
-    </header>
-
-    <main>
-        <h1>What will you build?</h1>
-        <p class="subtitle">Turn ideas into apps in minutes — no coding needed</p>
-
-        <div class="prompt-box">
-            <textarea id="main-prompt" rows="2" placeholder="Make a Telegram Bot or Mini App for..."></textarea>
-            <div class="prompt-actions">
-                <button class="icon-btn"><i class="fa-solid fa-plus"></i></button>
-                <button onclick="openTokenModal()" class="send-btn"><i class="fa-solid fa-arrow-right"></i></button>
-            </div>
-        </div>
-
-        <div class="presets">
-            <div onclick="setPrompt('Hamster Kombat tarzidagi Telegram Mini App tap game bot')" class="chip"><i class="fa-solid fa-gamepad" style="color:#ff5722;"></i> Hamster Kombat App</div>
-            <div onclick="setPrompt('TikTok uslubidagi ko\'ngilochar video Mini App boti')" class="chip"><i class="fa-solid fa-video" style="color:#a855f7;"></i> TikTok Feed</div>
-            <div onclick="setPrompt('Internet do\'kon va Click/Payme to\'lov bot boti')" class="chip"><i class="fa-solid fa-cart-shopping" style="color:#3b82f6;"></i> E-Commerce Bot</div>
-            <div onclick="setPrompt('Savol-javob va sun\'iy intellekt yordamchisi boti')" class="chip"><i class="fa-solid fa-robot" style="color:#22c55e;"></i> AI Assistant</div>
-        </div>
-
-        <div id="status-box"></div>
-    </main>
-
-    <div id="token-modal" class="modal-overlay">
-        <div class="modal">
-            <h3 style="font-size: 18px; font-weight: bold;">Telegram Bot Token Kiriting</h3>
-            <p style="font-size: 12px; color: #6b7280; margin-top: 4px;">BotFather'dan olingan API Tokenni kiriting:</p>
-            <input type="text" id="modal-token" placeholder="8921652010:AAH...">
-            <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                <button onclick="closeTokenModal()" style="padding: 8px 16px; border: none; background: transparent; cursor: pointer; font-size: 13px;">Bekor qilish</button>
-                <button onclick="deployBot()" class="btn-create" style="border-radius: 8px; font-size: 13px;">Ishga tushirish</button>
-            </div>
-        </div>
+<div class="container">
+    <h1>OmniSphere Cloud & API Gateway</h1>
+    
+    <div class="box">
+        <h3>1. Tarifni Tanlash va API Key Olish</h3>
+        <label>Ismingiz / Kompaniya:</label>
+        <input type="text" id="username" placeholder="Azizbek">
+        
+        <label>Tarifni Tanlang:</label>
+        <select id="tier">
+            <option value="starter">Starter Tarif ($5/oy) — 25 ta Bot + REST API</option>
+            <option value="pro">Pro Tarif ($30/oy) — 65 ta Bot + AI Bot Builder (15 ta)</option>
+            <option value="enterprise">Enterprise Tarif ($49/oy) — 230 ta Bot + Super AI (115 ta)</option>
+        </select>
+        <button onclick="registerKey()">API Key Generatsiya Qilish</button>
     </div>
 
-    <footer>© 2026 Replit Engine Platform. Powered by Gemini AI.</footer>
+    <div class="box">
+        <h3>2. Telegram Bot Yaratish (Sizning API Keyingiz bilan)</h3>
+        <label>Sizning API Key:</label>
+        <input type="text" id="apiKeyInput" placeholder="omni_live_...">
+        
+        <label>Telegram Bot Token (@BotFather):</label>
+        <input type="text" id="botTokenInput" placeholder="123456789:ABCdef...">
+        
+        <label>Bot Turi:</label>
+        <select id="botType">
+            <option value="ai_chat">AI Chat & Rasm Boti</option>
+            <option value="ecommerce">E-Commerce Do'kon Boti</option>
+            <option value="multitool">Universal 25+ Funksiyali Bot</option>
+        </select>
+        <button onclick="generateBot()">Botni Ishga Tushirish</button>
+    </div>
 
-    <script>
-        let userEmail = "malikovakmal478@gmail.com";
+    <div class="output" id="outputLog">> Tizim tayyor. API key va bot yaratish uchun yuqoridagi ma'lumotlarni kiriting...</div>
+</div>
 
-        function setPrompt(val) {
-            document.getElementById('main-prompt').value = val;
+<script>
+    async function registerKey() {
+        const username = document.getElementById("username").value;
+        const tier = document.getElementById("tier").value;
+        
+        const response = await fetch('http://localhost:8000/api/v1/register', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username, tier})
+        });
+        const data = await response.json();
+        
+        if(data.status === 'success') {
+            document.getElementById("apiKeyInput").value = data.api_key;
+            document.getElementById("outputLog").innerText = JSON.stringify(data, null, 2);
+        } else {
+            alert("Xatolik yuz berdi!");
         }
+    }
 
-        function openTokenModal() {
-            const prompt = document.getElementById('main-prompt').value.trim();
-            if(!prompt) {
-                alert("Iltimos, avval bot g'oyasini yozing!");
-                return;
-            }
-            document.getElementById('token-modal').style.display = 'flex';
-        }
+    async function generateBot() {
+        const api_key = document.getElementById("apiKeyInput").value;
+        const bot_token = document.getElementById("botTokenInput").value;
+        const bot_type = document.getElementById("botType").value;
+        
+        const response = await fetch('http://localhost:8000/api/v1/generate-bot', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({api_key, bot_token, bot_type})
+        });
+        const data = await response.json();
+        document.getElementById("outputLog").innerText = JSON.stringify(data, null, 2);
+    }
+</script>
 
-        function closeTokenModal() {
-            document.getElementById('token-modal').style.display = 'none';
-        }
-
-        function loginGoogle() {
-            alert("Google hisobingiz kiritildi: " + userEmail);
-            document.getElementById('auth-label').innerText = userEmail;
-        }
-
-        async function deployBot() {
-            const prompt = document.getElementById('main-prompt').value.trim();
-            const token = document.getElementById('modal-token').value.trim();
-            const statusBox = document.getElementById('status-box');
-
-            if (!token) {
-                alert("Bot token kiritilmadi!");
-                return;
-            }
-
-            closeTokenModal();
-
-            statusBox.style.display = 'block';
-            statusBox.className = "status-loading";
-            statusBox.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> AI siz so'ragan bot va Mini App'ni serverda yaratmoqda...`;
-
-            try {
-                const res = await fetch('https://mini-replit.onrender.com/deploy-bot', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token, prompt, email: userEmail })
-                });
-
-                const data = await res.json();
-
-                if (data.error) {
-                    statusBox.className = "status-error";
-                    statusBox.innerText = "Xatolik: " + data.error;
-                } else {
-                    statusBox.className = "status-success";
-                    statusBox.innerHTML = `🎉 <b>Botingiz ishga tushdi!</b><br>Telegram'ga kirib <b>/start</b> bosing.<br><span style="font-size: 12px; color: #4b5563;">Mini App URL: ${data.app_url}</span>`;
-                }
-            } catch (err) {
-                statusBox.className = "status-error";
-                statusBox.innerText = "Server bilan aloqa bog'lanmadi. Backend serveringiz ishga tushishini kuting va qayta urinib ko'ring.";
-            }
-        }
-    </script>
 </body>
-                                                                                                                                                                      </html>
+</html>
